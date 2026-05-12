@@ -37,6 +37,7 @@ function rwdpa_register_settings() {
  */
 function rwdpa_get_settings() {
 	$defaults = [
+		'contractor_list_subject_label' => __( 'Contractor', 'rw-dealer-portal-addons' ),
 		'contractor_list_logo_id'      => 0,
 		'contractor_list_address'      => '',
 		'contractor_list_disclaimer'   => '',
@@ -53,6 +54,7 @@ function rwdpa_get_settings() {
 		$legacy = get_option( 'rwdp_settings', [] );
 		if ( is_array( $legacy ) ) {
 			$settings = [
+				'contractor_list_subject_label' => $legacy['contractor_list_subject_label'] ?? $defaults['contractor_list_subject_label'],
 				'contractor_list_logo_id'      => $legacy['contractor_list_logo_id'] ?? 0,
 				'contractor_list_address'      => $legacy['contractor_list_address'] ?? '',
 				'contractor_list_disclaimer'   => $legacy['contractor_list_disclaimer'] ?? '',
@@ -62,6 +64,10 @@ function rwdpa_get_settings() {
 	}
 
 	$settings = wp_parse_args( $settings, $defaults );
+	$settings['contractor_list_subject_label'] = sanitize_text_field( $settings['contractor_list_subject_label'] ?? '' );
+	if ( '' === $settings['contractor_list_subject_label'] ) {
+		$settings['contractor_list_subject_label'] = $defaults['contractor_list_subject_label'];
+	}
 	$settings['contractor_list_logo_id'] = absint( $settings['contractor_list_logo_id'] ?? 0 );
 	$settings['contractor_list_address'] = sanitize_textarea_field( $settings['contractor_list_address'] ?? '' );
 	$settings['contractor_list_disclaimer'] = sanitize_textarea_field( $settings['contractor_list_disclaimer'] ?? '' );
@@ -89,6 +95,10 @@ function rwdpa_get_settings() {
  */
 function rwdpa_sanitize_settings( $raw ) {
 	$clean = [];
+	$clean['contractor_list_subject_label'] = sanitize_text_field( $raw['contractor_list_subject_label'] ?? '' );
+	if ( '' === $clean['contractor_list_subject_label'] ) {
+		$clean['contractor_list_subject_label'] = __( 'Contractor', 'rw-dealer-portal-addons' );
+	}
 	$clean['contractor_list_logo_id'] = absint( $raw['contractor_list_logo_id'] ?? 0 );
 	$clean['contractor_list_address'] = sanitize_textarea_field( $raw['contractor_list_address'] ?? '' );
 	$clean['contractor_list_disclaimer'] = sanitize_textarea_field( $raw['contractor_list_disclaimer'] ?? '' );
@@ -138,6 +148,14 @@ function rwdpa_render_settings_page() {
 			<?php settings_fields( 'rwdpa_settings_group' ); ?>
 
 			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="rwdpa_contractor_list_subject_label"><?php esc_html_e( 'List Subject Label', 'rw-dealer-portal-addons' ); ?></label></th>
+					<td>
+						<input type="text" id="rwdpa_contractor_list_subject_label" name="rwdpa_settings[contractor_list_subject_label]" class="regular-text" value="<?php echo esc_attr( $settings['contractor_list_subject_label'] ); ?>" />
+						<p class="description"><?php esc_html_e( 'Used in print title as "{Subject} List" and "{Filter} {Subject} List". Example: Contractor, Dealer, Supplier.', 'rw-dealer-portal-addons' ); ?></p>
+					</td>
+				</tr>
+
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Header Logo', 'rw-dealer-portal-addons' ); ?></th>
 					<td>

@@ -3,6 +3,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+add_action( 'wp_enqueue_scripts', 'rwdpa_enqueue_contractor_print_filter_assets', 110 );
+add_action( 'wp_print_footer_scripts', 'rwdpa_enqueue_contractor_print_filter_assets', 2 );
+
+if ( ! function_exists( 'rwdpa_enqueue_contractor_print_filter_assets' ) ) {
+	/**
+	 * Enqueue print filter URL enhancements when the core dealer map script is active.
+	 */
+	function rwdpa_enqueue_contractor_print_filter_assets() {
+		static $done = false;
+		if ( $done ) {
+			return;
+		}
+
+		if ( ! wp_script_is( 'rwdp-dealer-map', 'enqueued' ) ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'rwdpa-print-filters',
+			RWDPA_PLUGIN_URL . 'assets/js/print-filters.js',
+			[ 'rwdp-dealer-map', 'jquery' ],
+			RWDPA_VERSION,
+			true
+		);
+
+		$done = true;
+	}
+}
+
 if ( ! function_exists( 'rwdp_get_contractor_list_settings' ) ) {
 	/**
 	 * Contractor list settings defaults and sanitization-safe shape.
@@ -15,6 +44,7 @@ if ( ! function_exists( 'rwdp_get_contractor_list_settings' ) ) {
 		}
 
 		$defaults = [
+			'contractor_list_subject_label' => __( 'Contractor', 'rw-dealer-portal-addons' ),
 			'contractor_list_logo_id'      => 0,
 			'contractor_list_address'      => '',
 			'contractor_list_disclaimer'   => '',
@@ -172,7 +202,23 @@ if ( ! function_exists( 'rwdp_maybe_render_contractor_print_page' ) ) {
 			$dealer_ids = array_values( array_filter( array_map( 'absint', explode( ',', $dealer_ids_raw ) ) ) );
 		}
 
-		$dealer_type = sanitize_title( wp_unslash( $_GET['dealer_type'] ?? '' ) );
+		$dealer_type_raw = sanitize_text_field( wp_unslash( $_GET['dealer_type'] ?? '' ) );
+		// Handle dealer_type as either term ID or slug.
+		$dealer_type = '';
+		if ( '' !== $dealer_type_raw ) {
+			$term_id = absint( $dealer_type_raw );
+			if ( $term_id > 0 ) {
+				// Try as term ID first.
+				$term = get_term( $term_id, 'rw_dealer_type' );
+				if ( $term && ! is_wp_error( $term ) ) {
+					$dealer_type = $term->slug;
+				}
+			} else {
+				// Try as slug (fallback for backward compatibility).
+				$dealer_type = sanitize_title( $dealer_type_raw );
+			}
+		}
+		$filter_title_display = sanitize_text_field( wp_unslash( $_GET['filter_title_display'] ?? '' ) );
 
 		$settings = rwdp_get_contractor_list_settings();
 		$rows = rwdp_get_contractor_rows( [
@@ -183,17 +229,56 @@ if ( ! function_exists( 'rwdp_maybe_render_contractor_print_page' ) ) {
 		$labels = rwdp_get_contractor_list_column_labels();
 		$columns = $settings['contractor_list_show_columns'];
 		$logo_url = $settings['contractor_list_logo_id'] ? wp_get_attachment_image_url( $settings['contractor_list_logo_id'], 'full' ) : '';
-		$header_title = __( 'Contractor List', 'rw-dealer-portal-addons' );
+		$list_subject_label = sanitize_text_field( $settings['contractor_list_subject_label'] ?? '' );
+		if ( '' === $list_subject_label ) {
+			$list_subject_label = __( 'Contractor', 'rw-dealer-portal-addons' );
+		}
+		$header_title = sprintf(
+			/* translators: %s: list subject label */
+			__( '%s List', 'rw-dealer-portal-addons' ),
+			$list_subject_label
+		);
+		$header_parts = [];
+		$seen_parts = [];
+
+		$add_header_part = static function ( $part ) use ( &$header_parts, &$seen_parts ) {
+			$part = trim( (string) $part );
+			if ( '' === $part ) {
+				return;
+			}
+
+			$key = strtolower( $part );
+			if ( isset( $seen_parts[ $key ] ) ) {
+				return;
+			}
+
+			$seen_parts[ $key ] = true;
+			$header_parts[] = $part;
+		};
 
 		if ( '' !== $dealer_type ) {
 			$term = get_term_by( 'slug', $dealer_type, 'rw_dealer_type' );
 			if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) ) {
-				$header_title = sprintf(
-					/* translators: %s: dealer type name */
-					__( '%s Contractor List', 'rw-dealer-portal-addons' ),
-					$term->name
-				);
+				$add_header_part( $term->name );
 			}
+		}
+
+		if ( '' !== $filter_title_display ) {
+			$pieces = preg_split( '/\s*\+\s*/', $filter_title_display );
+			if ( is_array( $pieces ) ) {
+				foreach ( $pieces as $piece ) {
+					$add_header_part( $piece );
+				}
+			}
+		}
+
+		if ( ! empty( $header_parts ) ) {
+			$header_title = sprintf(
+				/* translators: 1: active filter names, 2: list subject label */
+				__( '%1$s %2$s List', 'rw-dealer-portal-addons' ),
+				implode( ' + ', $header_parts ),
+				$list_subject_label
+			);
 		}
 
 		nocache_headers();
@@ -209,7 +294,7 @@ if ( ! function_exists( 'rwdp_maybe_render_contractor_print_page' ) ) {
 				body { font-family: Arial, sans-serif; margin: 20px; color: #222; }
 				.rwdp-print-topbar { margin-bottom: 16px; }
 				.rwdp-print-topbar button { margin-right: 8px; }
-				.rwdp-print-header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; margin-bottom: 18px; }
+				.rwdp-print-header { display: flex;flex-direction: column; justify-content: space-between; gap: 24px; align-items: flex-start; margin-bottom: 18px; }
 				.rwdp-print-logo img { max-height: 90px; width: auto; }
 				.rwdp-print-address { white-space: pre-line; font-size: 14px; line-height: 1.4; }
 				h1 { margin: 0 0 14px; font-size: 28px; }
