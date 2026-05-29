@@ -5,12 +5,70 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 add_action( 'rwdp_dealer_info_meta_box_after', 'rwdpa_render_service_radius_field' );
 add_action( 'rwdp_save_dealer_meta', 'rwdpa_save_service_radius_field', 10, 2 );
+add_action( 'save_post_rw_dealer', 'rwdpa_save_service_radius_field', 20, 2 );
+add_action( 'save_post_rw_dealer', 'rwdpa_save_dealer_hours_field', 20, 2 );
+add_action( 'add_meta_boxes_rw_dealer', 'rwdpa_register_dealer_editor_fallback_meta_box' );
 add_filter( 'rwdp_map_localized_data', 'rwdpa_add_service_radius_map_text' );
 add_filter( 'rwdp_ajax_dealer_data', 'rwdpa_add_service_radius_to_ajax_data', 10, 2 );
 add_action( 'wp_enqueue_scripts', 'rwdpa_enqueue_service_area_assets', 100 );
 add_action( 'wp_print_footer_scripts', 'rwdpa_enqueue_service_area_assets', 1 );
 add_action( 'rwdp_import_dealer_extra_fields', 'rwdpa_import_service_radius', 10, 2 );
 add_action( 'rwdp_import_csv_column_hints', 'rwdpa_import_service_radius_column_hint' );
+
+/**
+ * Determine whether the core dealer editor still provides the add-on hook and hours field.
+ *
+ * @return array{hook:bool,hours:bool}
+ */
+function rwdpa_core_dealer_editor_support() {
+	static $support = null;
+
+	if ( null !== $support ) {
+		return $support;
+	}
+
+	$support = [
+		'hook'  => false,
+		'hours' => false,
+	];
+
+	$core_meta_fields = defined( 'RWDP_PLUGIN_DIR' ) ? RWDP_PLUGIN_DIR . 'includes/meta-fields.php' : '';
+	if ( '' === $core_meta_fields || ! is_readable( $core_meta_fields ) ) {
+		return $support;
+	}
+
+	$core_source = file_get_contents( $core_meta_fields );
+	if ( false === $core_source ) {
+		return $support;
+	}
+
+	$support['hook']  = false !== strpos( $core_source, "do_action( 'rwdp_dealer_info_meta_box_after'" );
+	$support['hours'] = false !== strpos( $core_source, 'name="rwdp_hours"' ) || false !== strpos( $core_source, "name='rwdp_hours'" ) || false !== strpos( $core_source, '_rwdp_hours' );
+
+	return $support;
+}
+
+/**
+ * Check whether the current request can save dealer meta.
+ *
+ * @param int $post_id Dealer post ID.
+ * @return bool
+ */
+function rwdpa_can_save_dealer_meta( $post_id ) {
+	if ( ! isset( $_POST['rwdp_dealer_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rwdp_dealer_meta_nonce'] ) ), 'rwdp_save_dealer_meta' ) ) {
+		return false;
+	}
+
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return false;
+	}
+
+	if ( ! current_user_can( 'edit_rw_dealer', $post_id ) ) {
+		return false;
+	}
+
+	return true;
+}
 
 /**
  * Render service area field in the dealer editor.
@@ -33,6 +91,55 @@ function rwdpa_render_service_radius_field( $post ) {
 }
 
 /**
+ * Register fallback dealer editor fields if the core editor stops rendering them.
+ */
+function rwdpa_register_dealer_editor_fallback_meta_box() {
+	$support = rwdpa_core_dealer_editor_support();
+
+	if ( ! empty( $support['hook'] ) && ! empty( $support['hours'] ) ) {
+		return;
+	}
+
+	add_meta_box(
+		'rwdpa_dealer_fields_fallback',
+		__( 'Dealer Add-ons', 'rw-dealer-portal-addons' ),
+		'rwdpa_render_dealer_fields_fallback_meta_box',
+		'rw_dealer',
+		'normal',
+		'default'
+	);
+}
+
+/**
+ * Fallback renderer for dealer fields that may be removed from the core editor.
+ *
+ * @param WP_Post $post Dealer post object.
+ */
+function rwdpa_render_dealer_fields_fallback_meta_box( $post ) {
+	$support = rwdpa_core_dealer_editor_support();
+
+	if ( empty( $support['hook'] ) || empty( $support['hours'] ) ) {
+		wp_nonce_field( 'rwdp_save_dealer_meta', 'rwdp_dealer_meta_nonce' );
+	}
+
+	if ( empty( $support['hours'] ) ) {
+		$hours = get_post_meta( $post->ID, '_rwdp_hours', true );
+		?>
+		<p class="rwdp-meta-section-title"><?php esc_html_e( 'Business Hours', 'rw-dealer-portal' ); ?></p>
+
+		<div class="rwdp-meta-row">
+			<label for="rwdp_hours"><?php esc_html_e( 'Hours', 'rw-dealer-portal' ); ?></label>
+			<textarea id="rwdp_hours" name="rwdp_hours" rows="4"><?php echo esc_textarea( $hours ); ?></textarea>
+		</div>
+		<?php
+	}
+
+	if ( empty( $support['hook'] ) ) {
+		rwdpa_render_service_radius_field( $post );
+	}
+}
+
+/**
  * Persist service area field.
  *
  * @param int     $post_id Dealer post ID.
@@ -41,8 +148,33 @@ function rwdpa_render_service_radius_field( $post ) {
 function rwdpa_save_service_radius_field( $post_id, $post ) {
 	unset( $post );
 
+	if ( ! rwdpa_can_save_dealer_meta( $post_id ) ) {
+		return;
+	}
+
 	$radius = absint( wp_unslash( $_POST['rwdpa_service_radius_miles'] ?? 0 ) );
 	update_post_meta( $post_id, '_rwdp_service_radius_miles', $radius );
+}
+
+/**
+ * Persist fallback business hours when the core editor no longer renders them.
+ *
+ * @param int     $post_id Dealer post ID.
+ * @param WP_Post $post    Dealer post object.
+ */
+function rwdpa_save_dealer_hours_field( $post_id, $post ) {
+	unset( $post );
+
+	if ( ! rwdpa_can_save_dealer_meta( $post_id ) ) {
+		return;
+	}
+
+	if ( ! empty( rwdpa_core_dealer_editor_support()['hours'] ) ) {
+		return;
+	}
+
+	$hours = sanitize_textarea_field( wp_unslash( $_POST['rwdp_hours'] ?? '' ) );
+	update_post_meta( $post_id, '_rwdp_hours', $hours );
 }
 
 /**
@@ -52,8 +184,13 @@ function rwdpa_save_service_radius_field( $post_id, $post ) {
  * @return array<string,mixed>
  */
 function rwdpa_add_service_radius_map_text( $map_data ) {
+	$settings = function_exists( 'rwdpa_get_settings' ) ? rwdpa_get_settings() : [];
+
 	$map_data['showRadiusText'] = __( 'Show Radius', 'rw-dealer-portal-addons' );
 	$map_data['hideRadiusText'] = __( 'Hide Radius', 'rw-dealer-portal-addons' );
+	$map_data['showServiceAreaInResults'] = ! empty( $settings['show_service_area_in_results'] );
+	$map_data['showServiceAreaInPopup'] = ! empty( $settings['show_service_area_in_popup'] );
+	$map_data['serviceAreaTextTemplate'] = __( '{value} mile service area', 'rw-dealer-portal-addons' );
 
 	return $map_data;
 }

@@ -42,6 +42,8 @@ function rwdpa_get_settings() {
 		'contractor_list_address'      => '',
 		'contractor_list_disclaimer'   => '',
 		'contractor_list_show_columns' => [ 'company', 'address', 'city', 'state', 'zip', 'phone' ],
+		'show_service_area_in_results' => 1,
+		'show_service_area_in_popup'   => 1,
 	];
 
 	$settings = get_option( 'rwdpa_settings', [] );
@@ -59,6 +61,8 @@ function rwdpa_get_settings() {
 				'contractor_list_address'      => $legacy['contractor_list_address'] ?? '',
 				'contractor_list_disclaimer'   => $legacy['contractor_list_disclaimer'] ?? '',
 				'contractor_list_show_columns' => $legacy['contractor_list_show_columns'] ?? $defaults['contractor_list_show_columns'],
+				'show_service_area_in_results' => $legacy['show_service_area_in_results'] ?? $defaults['show_service_area_in_results'],
+				'show_service_area_in_popup'   => $legacy['show_service_area_in_popup'] ?? $defaults['show_service_area_in_popup'],
 			];
 		}
 	}
@@ -71,6 +75,8 @@ function rwdpa_get_settings() {
 	$settings['contractor_list_logo_id'] = absint( $settings['contractor_list_logo_id'] ?? 0 );
 	$settings['contractor_list_address'] = sanitize_textarea_field( $settings['contractor_list_address'] ?? '' );
 	$settings['contractor_list_disclaimer'] = sanitize_textarea_field( $settings['contractor_list_disclaimer'] ?? '' );
+	$settings['show_service_area_in_results'] = ! empty( $settings['show_service_area_in_results'] ) ? 1 : 0;
+	$settings['show_service_area_in_popup'] = ! empty( $settings['show_service_area_in_popup'] ) ? 1 : 0;
 
 	$allowed_cols = [ 'company', 'contact_name', 'address', 'city', 'state', 'zip', 'phone', 'email', 'website', 'hours' ];
 	$raw_cols = is_array( $settings['contractor_list_show_columns'] ?? null ) ? $settings['contractor_list_show_columns'] : [];
@@ -102,6 +108,8 @@ function rwdpa_sanitize_settings( $raw ) {
 	$clean['contractor_list_logo_id'] = absint( $raw['contractor_list_logo_id'] ?? 0 );
 	$clean['contractor_list_address'] = sanitize_textarea_field( $raw['contractor_list_address'] ?? '' );
 	$clean['contractor_list_disclaimer'] = sanitize_textarea_field( $raw['contractor_list_disclaimer'] ?? '' );
+	$clean['show_service_area_in_results'] = ! empty( $raw['show_service_area_in_results'] ) ? 1 : 0;
+	$clean['show_service_area_in_popup'] = ! empty( $raw['show_service_area_in_popup'] ) ? 1 : 0;
 
 	$allowed_cols = [ 'company', 'contact_name', 'address', 'city', 'state', 'zip', 'phone', 'email', 'website', 'hours' ];
 	$raw_cols = is_array( $raw['contractor_list_show_columns'] ?? null ) ? $raw['contractor_list_show_columns'] : [];
@@ -197,6 +205,22 @@ function rwdpa_render_settings_page() {
 					<th scope="row"><label for="rwdpa_contractor_list_disclaimer"><?php esc_html_e( 'Disclaimer', 'rw-dealer-portal-addons' ); ?></label></th>
 					<td>
 						<textarea id="rwdpa_contractor_list_disclaimer" name="rwdpa_settings[contractor_list_disclaimer]" rows="4" class="large-text"><?php echo esc_textarea( $settings['contractor_list_disclaimer'] ); ?></textarea>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Service Area Display', 'rw-dealer-portal-addons' ); ?></th>
+					<td>
+						<fieldset>
+							<label style="display:block;margin-bottom:6px;">
+								<input type="checkbox" name="rwdpa_settings[show_service_area_in_results]" value="1" <?php checked( ! empty( $settings['show_service_area_in_results'] ) ); ?> />
+								<?php esc_html_e( 'Show service area value on Dealer Results cards', 'rw-dealer-portal-addons' ); ?>
+							</label>
+							<label style="display:block;">
+								<input type="checkbox" name="rwdpa_settings[show_service_area_in_popup]" value="1" <?php checked( ! empty( $settings['show_service_area_in_popup'] ) ); ?> />
+								<?php esc_html_e( 'Show service area value in Dealer Map popup', 'rw-dealer-portal-addons' ); ?>
+							</label>
+						</fieldset>
 					</td>
 				</tr>
 			</table>

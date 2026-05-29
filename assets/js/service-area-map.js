@@ -7,6 +7,20 @@
   var mapApi = null;
   var radiusCircle = null;
   var activeDealerId = null;
+  var MAX_SERVICE_AREA_FIT_ZOOM = 12;
+
+  function getServiceAreaSettings() {
+    return {
+      showInResults: !!(rwdpMap && rwdpMap.showServiceAreaInResults),
+      showInPopup: !!(rwdpMap && rwdpMap.showServiceAreaInPopup),
+      textTemplate: (rwdpMap && rwdpMap.serviceAreaTextTemplate) || '{value} mile service area'
+    };
+  }
+
+  function getServiceAreaText(miles) {
+    var settings = getServiceAreaSettings();
+    return String(settings.textTemplate).replace('{value}', String(miles));
+  }
 
   function getRadiusTexts() {
     return {
@@ -69,6 +83,65 @@
     });
 
     updateRadiusButtons();
+  }
+
+  function ensureServiceAreaValues(dealers) {
+    var settings = getServiceAreaSettings();
+    var dealerById = {};
+
+    $('.rwdpa-service-area-value').remove();
+
+    if (!settings.showInResults) {
+      return;
+    }
+
+    (dealers || []).forEach(function (dealer) {
+      dealerById[String(dealer.id)] = dealer;
+    });
+
+    $('.rwdp-result-card').each(function () {
+      var $card = $(this);
+      var dealerId = String($card.data('dealer-id') || '');
+      var dealer = dealerById[dealerId];
+      var miles = Number(dealer && dealer.service_radius_miles);
+
+      if (!dealer || !miles || miles <= 0) {
+        return;
+      }
+
+      var $body = $card.find('.rwdp-result-card__body').first();
+      if (!$body.length) {
+        return;
+      }
+
+      var $line = $('<div class="rwdp-result-card__service-area rwdpa-service-area-value"></div>').text(getServiceAreaText(miles));
+      var $actions = $body.find('.rwdp-result-card__actions').first();
+      if ($actions.length) {
+        $line.insertBefore($actions);
+      } else {
+        $body.append($line);
+      }
+    });
+  }
+
+  function injectPopupServiceArea(dealer) {
+    var settings = getServiceAreaSettings();
+    var miles = Number(dealer && dealer.service_radius_miles);
+
+    if (!settings.showInPopup || !miles || miles <= 0) {
+      return;
+    }
+
+    setTimeout(function () {
+      var $details = $('.gm-style .rwdp-infowindow .rwdp-infowindow__details').first();
+      if (!$details.length || $details.find('.rwdpa-service-area-value-popup').length) {
+        return;
+      }
+
+      $details.append(
+        $('<p class="rwdp-infowindow__service-area rwdpa-service-area-value-popup"></p>').text(getServiceAreaText(miles))
+      );
+    }, 0);
   }
 
   function toggleRadiusCircle(dealerId) {
@@ -145,7 +218,19 @@
       radius: Number(dealer.service_radius_miles) * 1609.344
     });
 
-    map.panTo(marker.getPosition());
+    var circleBounds = radiusCircle.getBounds();
+    if (circleBounds) {
+      map.fitBounds(circleBounds);
+      google.maps.event.addListenerOnce(map, 'idle', function () {
+        var currentZoom = Number(map.getZoom());
+        if (currentZoom > MAX_SERVICE_AREA_FIT_ZOOM) {
+          map.setZoom(MAX_SERVICE_AREA_FIT_ZOOM);
+        }
+      });
+    } else {
+      map.panTo(marker.getPosition());
+    }
+
     activeDealerId = Number(dealerId);
     updateRadiusButtons();
   }
@@ -157,10 +242,19 @@
   $(document).on('rwdp:results-rendered', function (event, api, dealers) {
     mapApi = api || mapApi;
     ensureRadiusButtons(dealers || []);
+    ensureServiceAreaValues(dealers || []);
 
     if (activeDealerId !== null && mapApi && !mapApi.getDealerById(activeDealerId)) {
       clearRadiusCircle();
     }
+  });
+
+  $(document).on('rwdp:dealer-selected', function (event, dealer) {
+    var miles = Number(dealer && dealer.service_radius_miles);
+    if (!dealer || !miles || miles <= 0) {
+      clearRadiusCircle();
+    }
+    injectPopupServiceArea(dealer || null);
   });
 
   $(document).on('rwdp:markers-updated', function (event, api) {
@@ -193,6 +287,14 @@
   $(document).on('click', '.rwdp-vom-btn', function () {
     var dealerId = Number($(this).data('dealer-id'));
     if (!dealerId) {
+      return;
+    }
+
+    // If dealer has no radius, clear any active radius circle,
+    // then let core View on Map behavior handle scroll + popup.
+    var dealer = mapApi ? mapApi.getDealerById(dealerId) : null;
+    if (!dealer || !dealer.service_radius_miles || Number(dealer.service_radius_miles) <= 0) {
+      clearRadiusCircle();
       return;
     }
 

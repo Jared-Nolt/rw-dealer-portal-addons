@@ -1,0 +1,120 @@
+/* ---- Contractor list widget (table style, inherits theme color/typography) ---- */
+.rwdp-contractor-list-widget {
+  color: inherit;
+  font: inherit;
+}
+
+.rwdp-contractor-list-widget,
+.rwdp-contractor-list-widget * {
+  font-family: inherit;
+}
+
+.rwdp-contractor-list-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.rwdp-contractor-list-header__logo img {
+  max-height: 84px;
+  width: auto;
+  display: block;
+}
+
+.rwdp-contractor-list-header__address {
+  white-space: pre-line;
+  line-height: 1.45;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.rwdp-contractor-list-actions {
+  margin: 0 0 18px;
+}
+
+.rwdp-contractor-list-download-all,
+.rwdp-contractor-list-download-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1;
+  padding: 9px 14px;
+  transition: transform 0.14s ease, background-color 0.14s ease;
+}
+
+.rwdp-contractor-list-download-all:hover,
+.rwdp-contractor-list-download-all:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.rwdp-contractor-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rwdp-contractor-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: inherit;
+  font: inherit;
+}
+
+.rwdp-contractor-table th,
+.rwdp-contractor-table td {
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.rwdp-contractor-table th {
+  font-weight: 700;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.rwdp-contractor-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, currentColor 3%, transparent);
+}
+
+.rwdp-contractor-table a {
+  color: inherit;
+}
+
+.rwdp-contractor-list-empty {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  color: inherit;
+}
+
+.rwdp-contractor-list-disclaimer {
+  margin-top: 14px;
+  white-space: pre-line;
+  color: inherit;
+  opacity: 0.75;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 680px) {
+  .rwdp-contractor-list-header {
+    flex-direction: column;
+  }
+
+  .rwdp-contractor-table th,
+  .rwdp-contractor-table td {
+    padding: 8px 10px;
+    font-size: 0.92rem;
+  }
+}

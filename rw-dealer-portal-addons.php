@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RW Dealer Portal Addons
  * Description: Optional add-ons for RW Dealer Portal, including contractor list print/PDF tools and radius field to dealers with radius marker on map.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Jared Nolt
  * Plugin URI: https://github.com/Jared-Nolt/rw-dealer-portal-addons
  * Requires at least: 6.5
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RWDPA_VERSION', '1.0.1' );
+define( 'RWDPA_VERSION', '1.0.2' );
 define( 'RWDPA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RWDPA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

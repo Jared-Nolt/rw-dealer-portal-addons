@@ -2,3 +2,13 @@
   background: #1a5276;
   color: #fff;
 }
+
+.rwdp-result-card__service-area.rwdpa-service-area-value {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.rwdp-infowindow__service-area.rwdpa-service-area-value-popup {
+  margin: 10px 0 0;
+}

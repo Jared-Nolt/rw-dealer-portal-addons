@@ -26,7 +26,7 @@ class RWDP_Contractor_List_Widget extends \Elementor\Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [ 'rwdp-dealer-map' ];
+		return [ 'rwdp-dealer-map', 'rwdpa-contractor-list' ];
 	}
 
 	protected function register_controls() {

@@ -5,6 +5,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 add_action( 'wp_enqueue_scripts', 'rwdpa_enqueue_contractor_print_filter_assets', 110 );
 add_action( 'wp_print_footer_scripts', 'rwdpa_enqueue_contractor_print_filter_assets', 2 );
+add_action( 'wp_enqueue_scripts', 'rwdpa_register_contractor_list_assets', 20 );
+
+if ( ! function_exists( 'rwdpa_register_contractor_list_assets' ) ) {
+	/**
+	 * Register contractor list widget styles owned by the add-ons plugin.
+	 */
+	function rwdpa_register_contractor_list_assets() {
+		wp_register_style(
+			'rwdpa-contractor-list',
+			RWDPA_PLUGIN_URL . 'assets/css/contractor-list.css',
+			[],
+			RWDPA_VERSION
+		);
+	}
+}
 
 if ( ! function_exists( 'rwdpa_enqueue_contractor_print_filter_assets' ) ) {
 	/**
