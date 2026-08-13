@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,10 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 - Service Area display enhancements for map results and map popups.
 
 == Changelog ==
+
+= 1.0.3 =
+- Restored service area radius toggle, results/popup text, and map labels after RW Dealer Portal 1.0.19 removed the `rwdp_map_localized_data` and `rwdp_ajax_dealer_data` filters. These now run through independent add-on-owned localized data instead of depending on core filters.
+- Restored the contractor list print/PDF button on the Dealer Map widget after RW Dealer Portal 1.0.19 removed the widget's built-in "Show Print/PDF Button" control. The button is now added via Elementor's `elementor/widget/render_content` filter and controlled from Addons → Settings (new "Map Print Button" option).
 
 = 1.0.2 =
 - Added compatibility fallback in add-ons for Dealer edit fields when core editor hooks change.

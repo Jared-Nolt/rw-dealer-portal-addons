@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'wp_enqueue_scripts', 'rwdpa_enqueue_contractor_print_filter_assets', 110 );
 add_action( 'wp_print_footer_scripts', 'rwdpa_enqueue_contractor_print_filter_assets', 2 );
 add_action( 'wp_enqueue_scripts', 'rwdpa_register_contractor_list_assets', 20 );
+add_filter( 'elementor/widget/render_content', 'rwdpa_inject_map_print_button', 10, 2 );
 
 if ( ! function_exists( 'rwdpa_register_contractor_list_assets' ) ) {
 	/**
@@ -44,6 +45,45 @@ if ( ! function_exists( 'rwdpa_enqueue_contractor_print_filter_assets' ) ) {
 		);
 
 		$done = true;
+	}
+}
+
+if ( ! function_exists( 'rwdpa_inject_map_print_button' ) ) {
+	/**
+	 * Append the contractor print button to the Dealer Map widget's rendered output.
+	 *
+	 * Core (1.0.19+) removed the "Show Print/PDF Button" Elementor control and its
+	 * rendering block from the widget itself, so it's re-added here via Elementor's
+	 * own render_content filter instead of a per-widget control.
+	 *
+	 * @param string               $content Rendered widget HTML.
+	 * @param \Elementor\Widget_Base $widget Widget instance.
+	 * @return string
+	 */
+	function rwdpa_inject_map_print_button( $content, $widget ) {
+		if ( ! is_object( $widget ) || 'rwdp_dealer_map' !== $widget->get_name() ) {
+			return $content;
+		}
+
+		$settings = rwdp_get_contractor_list_settings();
+		if ( empty( $settings['show_print_button_on_map'] ) ) {
+			return $content;
+		}
+
+		$button_text = $settings['print_button_text'] ?? __( 'Download Contractor List', 'rw-dealer-portal-addons' );
+		if ( '' === trim( (string) $button_text ) ) {
+			$button_text = __( 'Download Contractor List', 'rw-dealer-portal-addons' );
+		}
+
+		$print_url = rwdp_get_contractor_print_url();
+
+		$button = sprintf(
+			'<p class="rwdp-map-print-wrap" style="margin-top:12px;"><a href="%1$s" class="rwdp-btn rwdp-btn--primary" id="rwdp-print-results-btn" data-print-base="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a></p>',
+			esc_url( $print_url ),
+			esc_html( $button_text )
+		);
+
+		return $content . $button;
 	}
 }
 

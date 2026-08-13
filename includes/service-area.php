@@ -209,6 +209,38 @@ function rwdpa_add_service_radius_to_ajax_data( $dealer_data, $dealer ) {
 }
 
 /**
+ * Build a map of dealer ID => service radius (miles) for every dealer that has one set.
+ *
+ * Core no longer runs dealer AJAX data through the `rwdp_ajax_dealer_data` filter, so this
+ * is fetched independently and merged into dealer objects client-side.
+ *
+ * @return array<string,int>
+ */
+function rwdpa_get_service_radii_map() {
+	$posts = get_posts( [
+		'post_type'      => 'rw_dealer',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'meta_query'     => [
+			[
+				'key'     => '_rwdp_service_radius_miles',
+				'value'   => 0,
+				'compare' => '>',
+				'type'    => 'NUMERIC',
+			],
+		],
+	] );
+
+	$map = [];
+	foreach ( $posts as $dealer_id ) {
+		$map[ $dealer_id ] = absint( get_post_meta( $dealer_id, '_rwdp_service_radius_miles', true ) );
+	}
+
+	return $map;
+}
+
+/**
  * Enqueue service area map enhancements only when core dealer map is in use.
  */
 function rwdpa_enqueue_service_area_assets() {
@@ -234,6 +266,19 @@ function rwdpa_enqueue_service_area_assets() {
 		RWDPA_PLUGIN_URL . 'assets/css/service-area-map.css',
 		[ 'rwdp-dealer-map' ],
 		RWDPA_VERSION
+	);
+
+	/*
+	 * Core (1.0.19+) no longer calls apply_filters( 'rwdp_map_localized_data' ) or
+	 * apply_filters( 'rwdp_ajax_dealer_data' ), so the filters added above are never invoked.
+	 * Provide the same data through independent globals that service-area-map.js reads directly,
+	 * so the feature works regardless of whether core still fires those filters.
+	 */
+	wp_add_inline_script(
+		'rwdpa-service-area-map',
+		'window.rwdpaMapSettings = ' . wp_json_encode( rwdpa_add_service_radius_map_text( [] ) ) . ';' .
+		'window.rwdpaServiceRadii = ' . wp_json_encode( rwdpa_get_service_radii_map() ) . ';',
+		'before'
 	);
 
 	$done = true;

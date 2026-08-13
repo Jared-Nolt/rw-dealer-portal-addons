@@ -4,6 +4,40 @@
 (function ($) {
   'use strict';
 
+  var mapApi = null;
+
+  $(document).on('rwdp:map-ready', function (event, api) {
+    mapApi = api || mapApi;
+  });
+
+  function getVisibleDealerIds() {
+    if (!mapApi) {
+      return [];
+    }
+
+    var ids = [];
+    var markers = typeof mapApi.getMarkers === 'function' ? mapApi.getMarkers() : [];
+
+    if (markers && markers.length) {
+      markers.forEach(function (marker) {
+        if (marker && marker.dealerData && marker.dealerData.id) {
+          ids.push(parseInt(marker.dealerData.id, 10));
+        }
+      });
+    } else {
+      var dealers = typeof mapApi.getDealers === 'function' ? mapApi.getDealers() : [];
+      dealers.forEach(function (dealer) {
+        if (dealer && dealer.id) {
+          ids.push(parseInt(dealer.id, 10));
+        }
+      });
+    }
+
+    return ids.filter(function (id, idx, arr) {
+      return id && arr.indexOf(id) === idx;
+    });
+  }
+
   function getOptionLabel($select, value) {
     var label = '';
     var target = String(value);
@@ -114,8 +148,13 @@
 
     var dealerType = getCurrentDealerTypeSlug(baseUrl);
     var filterLabelText = getActiveFilterLabelText();
+    var visibleIds = getVisibleDealerIds();
+
     var nextUrl = setParam(baseUrl, 'dealer_type', dealerType);
     nextUrl = setParam(nextUrl, 'filter_title_display', filterLabelText);
+    if (visibleIds.length) {
+      nextUrl = setParam(nextUrl, 'dealer_ids', visibleIds.join(','));
+    }
 
     $button.data('print-base', nextUrl);
     $button.attr('data-print-base', nextUrl);

@@ -44,6 +44,8 @@ function rwdpa_get_settings() {
 		'contractor_list_show_columns' => [ 'company', 'address', 'city', 'state', 'zip', 'phone' ],
 		'show_service_area_in_results' => 1,
 		'show_service_area_in_popup'   => 1,
+		'show_print_button_on_map'     => 0,
+		'print_button_text'            => __( 'Download Contractor List', 'rw-dealer-portal-addons' ),
 	];
 
 	$settings = get_option( 'rwdpa_settings', [] );
@@ -77,6 +79,11 @@ function rwdpa_get_settings() {
 	$settings['contractor_list_disclaimer'] = sanitize_textarea_field( $settings['contractor_list_disclaimer'] ?? '' );
 	$settings['show_service_area_in_results'] = ! empty( $settings['show_service_area_in_results'] ) ? 1 : 0;
 	$settings['show_service_area_in_popup'] = ! empty( $settings['show_service_area_in_popup'] ) ? 1 : 0;
+	$settings['show_print_button_on_map'] = ! empty( $settings['show_print_button_on_map'] ) ? 1 : 0;
+	$settings['print_button_text'] = sanitize_text_field( $settings['print_button_text'] ?? '' );
+	if ( '' === $settings['print_button_text'] ) {
+		$settings['print_button_text'] = $defaults['print_button_text'];
+	}
 
 	$allowed_cols = [ 'company', 'contact_name', 'address', 'city', 'state', 'zip', 'phone', 'email', 'website', 'hours' ];
 	$raw_cols = is_array( $settings['contractor_list_show_columns'] ?? null ) ? $settings['contractor_list_show_columns'] : [];
@@ -110,6 +117,11 @@ function rwdpa_sanitize_settings( $raw ) {
 	$clean['contractor_list_disclaimer'] = sanitize_textarea_field( $raw['contractor_list_disclaimer'] ?? '' );
 	$clean['show_service_area_in_results'] = ! empty( $raw['show_service_area_in_results'] ) ? 1 : 0;
 	$clean['show_service_area_in_popup'] = ! empty( $raw['show_service_area_in_popup'] ) ? 1 : 0;
+	$clean['show_print_button_on_map'] = ! empty( $raw['show_print_button_on_map'] ) ? 1 : 0;
+	$clean['print_button_text'] = sanitize_text_field( $raw['print_button_text'] ?? '' );
+	if ( '' === $clean['print_button_text'] ) {
+		$clean['print_button_text'] = __( 'Download Contractor List', 'rw-dealer-portal-addons' );
+	}
 
 	$allowed_cols = [ 'company', 'contact_name', 'address', 'city', 'state', 'zip', 'phone', 'email', 'website', 'hours' ];
 	$raw_cols = is_array( $raw['contractor_list_show_columns'] ?? null ) ? $raw['contractor_list_show_columns'] : [];
@@ -221,6 +233,22 @@ function rwdpa_render_settings_page() {
 								<?php esc_html_e( 'Show service area value in Dealer Map popup', 'rw-dealer-portal-addons' ); ?>
 							</label>
 						</fieldset>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Map Print Button', 'rw-dealer-portal-addons' ); ?></th>
+					<td>
+						<fieldset>
+							<label style="display:block;margin-bottom:6px;">
+								<input type="checkbox" name="rwdpa_settings[show_print_button_on_map]" value="1" <?php checked( ! empty( $settings['show_print_button_on_map'] ) ); ?> />
+								<?php esc_html_e( 'Show a "Download Contractor List" print button on the Dealer Map widget', 'rw-dealer-portal-addons' ); ?>
+							</label>
+						</fieldset>
+						<p>
+							<label for="rwdpa_print_button_text"><?php esc_html_e( 'Button Text', 'rw-dealer-portal-addons' ); ?></label><br />
+							<input type="text" id="rwdpa_print_button_text" name="rwdpa_settings[print_button_text]" class="regular-text" value="<?php echo esc_attr( $settings['print_button_text'] ); ?>" />
+						</p>
 					</td>
 				</tr>
 			</table>

@@ -9,11 +9,19 @@
   var activeDealerId = null;
   var MAX_SERVICE_AREA_FIT_ZOOM = 12;
 
+  function getMapSettingsSource() {
+    // Prefer the add-on's own localized globals (works regardless of whether core
+    // still runs the rwdp_map_localized_data filter); fall back to rwdpMap for
+    // older core versions that do.
+    return window.rwdpaMapSettings || (typeof rwdpMap !== 'undefined' ? rwdpMap : null);
+  }
+
   function getServiceAreaSettings() {
+    var source = getMapSettingsSource();
     return {
-      showInResults: !!(rwdpMap && rwdpMap.showServiceAreaInResults),
-      showInPopup: !!(rwdpMap && rwdpMap.showServiceAreaInPopup),
-      textTemplate: (rwdpMap && rwdpMap.serviceAreaTextTemplate) || '{value} mile service area'
+      showInResults: !!(source && source.showServiceAreaInResults),
+      showInPopup: !!(source && source.showServiceAreaInPopup),
+      textTemplate: (source && source.serviceAreaTextTemplate) || '{value} mile service area'
     };
   }
 
@@ -23,10 +31,25 @@
   }
 
   function getRadiusTexts() {
+    var source = getMapSettingsSource();
     return {
-      show: (rwdpMap && rwdpMap.showRadiusText) || 'Show Radius',
-      hide: (rwdpMap && rwdpMap.hideRadiusText) || 'Hide Radius'
+      show: (source && source.showRadiusText) || 'Show Radius',
+      hide: (source && source.hideRadiusText) || 'Hide Radius'
     };
+  }
+
+  function patchDealerServiceRadius(dealer) {
+    if (!dealer || dealer.service_radius_miles !== undefined) {
+      return;
+    }
+
+    var radii = window.rwdpaServiceRadii;
+    if (!radii) {
+      return;
+    }
+
+    var radius = radii[String(dealer.id)];
+    dealer.service_radius_miles = radius ? Number(radius) : 0;
   }
 
   function clearRadiusCircle() {
@@ -237,6 +260,16 @@
 
   $(document).on('rwdp:map-ready', function (event, api) {
     mapApi = api || mapApi;
+  });
+
+  // Registered first so dealer objects are patched (by reference) before the
+  // handlers below and core's own dealer store read service_radius_miles.
+  $(document).on('rwdp:results-rendered', function (event, api, dealers) {
+    (dealers || []).forEach(patchDealerServiceRadius);
+  });
+
+  $(document).on('rwdp:dealer-selected', function (event, dealer) {
+    patchDealerServiceRadius(dealer);
   });
 
   $(document).on('rwdp:results-rendered', function (event, api, dealers) {
