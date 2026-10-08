@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,10 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.2.0 =
+- Added Portal Display → Import: update dealers' tier, protected radius, territory and manager override, and link users by email, from a CSV matched on dealer title. Includes a dry run, optional Dealer role for linked users, and optional removal of a legacy role.
+- Portal Display tabs are now filterable (rwdpa_portal_tabs).
 
 = 1.1.0 =
 - Added Dealer Portal → Portal Display settings (Dealer Tiers, Sales Managers, Office Contact, Registration tabs). Everything is off by default.

@@ -20,12 +20,18 @@ add_action( 'admin_enqueue_scripts', 'rwdpa_portal_admin_assets' );
  * @return array<string,string>
  */
 function rwdpa_portal_tabs() {
-	return [
+	/**
+	 * Filter the Portal Display tabs. A tab with a
+	 * `rwdpa_portal_render_tab_{key}` action renders outside the settings form.
+	 *
+	 * @param array<string,string> $tabs Tab key => label.
+	 */
+	return apply_filters( 'rwdpa_portal_tabs', [
 		'tiers'        => __( 'Dealer Tiers', 'rw-dealer-portal-addons' ),
 		'managers'     => __( 'Sales Managers', 'rw-dealer-portal-addons' ),
 		'office'       => __( 'Office Contact', 'rw-dealer-portal-addons' ),
 		'registration' => __( 'Registration', 'rw-dealer-portal-addons' ),
-	];
+	] );
 }
 
 /**
@@ -218,6 +224,9 @@ function rwdpa_portal_render_page() {
 			<?php endforeach; ?>
 		</nav>
 
+		<?php if ( has_action( 'rwdpa_portal_render_tab_' . $tab ) ) : ?>
+			<?php do_action( 'rwdpa_portal_render_tab_' . $tab ); ?>
+		<?php else : ?>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'rwdpa_portal_group' ); ?>
 			<input type="hidden" name="rwdpa_portal[_tab]" value="<?php echo esc_attr( $tab ); ?>" />
@@ -239,6 +248,7 @@ function rwdpa_portal_render_page() {
 			submit_button();
 			?>
 		</form>
+		<?php endif; ?>
 	</div>
 	<?php
 }
