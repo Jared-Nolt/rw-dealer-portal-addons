@@ -115,6 +115,11 @@ function rwdpa_manager_role_caps() {
 		$caps = array_merge( array_filter( $base->capabilities ), $caps );
 	}
 
+	// Never grant plugin/theme/settings capabilities (see manager-restrictions.php).
+	foreach ( rwdpa_manager_blocked_caps() as $blocked ) {
+		unset( $caps[ $blocked ] );
+	}
+
 	return $caps;
 }
 

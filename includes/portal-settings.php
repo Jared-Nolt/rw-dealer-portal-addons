@@ -404,7 +404,7 @@ function rwdpa_portal_render_managers_tab( $settings ) {
 						</option>
 					<?php endforeach; ?>
 				</select>
-				<p class="description"><?php esc_html_e( 'The manager role gets every capability of the chosen role, plus portal access. "Same as Administrator" gives managers full admin access to this site.', 'rw-dealer-portal-addons' ); ?></p>
+				<p class="description"><?php esc_html_e( 'The manager role gets every capability of the chosen role, plus portal access — except it can never see or edit administrators or other managers, manage plugins or themes, change settings, or edit with Elementor.', 'rw-dealer-portal-addons' ); ?></p>
 			</td>
 		</tr>
 		<tr>

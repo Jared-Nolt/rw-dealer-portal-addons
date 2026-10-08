@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,9 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.3.1 =
+- Sales managers (who are not also administrators) can never see, edit, promote or delete administrators or other managers; never get plugin, theme, core-update, settings (manage_options) or unfiltered HTML capabilities; and are excluded from the Elementor editor. Filters: rwdpa_manager_blocked_caps, rwdpa_manager_protected_roles.
 
 = 1.3.0 =
 - Added Sales Managers → Manager Permissions: the manager role can copy every capability of another role (e.g. Administrator) in addition to portal access. Default stays "Portal access only".
