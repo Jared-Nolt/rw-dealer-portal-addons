@@ -1,0 +1,190 @@
+/* RW Dealer Portal Addons — portal display components.
+ * Colors and fonts are custom properties so a theme or Elementor custom CSS
+ * can restyle them without overriding selectors. */
+
+.rwdpa-tier-card,
+.rwdpa-contact-card,
+.rwdpa-account-bar,
+.rwdpa-tier-preview {
+	--rwdpa-surface: #fff;
+	--rwdpa-tile: #e9eaee;
+	--rwdpa-text: inherit;
+	--rwdpa-muted: #6e6b78;
+	--rwdpa-highlight: #4b56a0;
+	--rwdpa-name: #8c6a45;
+	--rwdpa-radius: 16px;
+	--rwdpa-heading-font: inherit;
+	--rwdpa-highlight-font: inherit;
+	box-sizing: border-box;
+}
+
+/* Tier card */
+.rwdpa-tier-card {
+	position: relative;
+	background: var(--rwdpa-surface);
+	border: 1px solid transparent;
+	border-radius: var(--rwdpa-radius);
+	padding: clamp(24px, 5vw, 64px);
+	color: var(--rwdpa-text);
+}
+
+.rwdpa-tier-card--accent {
+	border-color: var(--rwdpa-tier-accent);
+}
+
+.rwdpa-tier-card__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 24px;
+}
+
+.rwdpa-tier-card__text {
+	max-width: 600px;
+}
+
+.rwdpa-tier-card__title {
+	margin: 0 0 8px;
+	font-family: var(--rwdpa-heading-font);
+	color: var(--rwdpa-muted);
+}
+
+.rwdpa-tier-card__intro p {
+	margin: 0 0 12px;
+}
+
+.rwdpa-tier-card__badge {
+	flex: 0 0 auto;
+	width: clamp(140px, 20vw, 245px);
+	margin-top: calc(clamp(24px, 5vw, 64px) * -1 - 36px);
+	margin-right: calc(clamp(24px, 5vw, 64px) * -1 + 16px);
+}
+
+.rwdpa-tier-card__badge img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.rwdpa-tier-card__benefits-heading {
+	margin: 16px 0 24px;
+	font-family: var(--rwdpa-heading-font);
+}
+
+.rwdpa-tier-card__benefits {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+	gap: 16px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.rwdpa-tier-card__benefit {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 156px;
+	margin: 0;
+	padding: 24px 20px;
+	background: var(--rwdpa-tile);
+	border-radius: 12px;
+	text-align: center;
+	line-height: 1.5;
+}
+
+.rwdpa-tier-card__benefit strong,
+.rwdpa-tier-card__benefit b {
+	color: var(--rwdpa-highlight);
+	font-family: var(--rwdpa-highlight-font);
+	font-weight: 700;
+}
+
+@media (max-width: 767px) {
+	.rwdpa-tier-card__header {
+		flex-direction: column-reverse;
+	}
+
+	.rwdpa-tier-card__badge {
+		margin: 0;
+		width: 160px;
+	}
+}
+
+/* Staff-only tier preview */
+.rwdpa-tier-preview {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	justify-content: center;
+	margin-top: 16px;
+	font-size: 14px;
+}
+
+.rwdpa-tier-preview a[aria-current="true"] {
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+/* Contact cards (sales manager, office) */
+.rwdpa-contact-card {
+	background: var(--rwdpa-surface);
+	border-radius: var(--rwdpa-radius);
+	padding: 40px 24px;
+	text-align: center;
+	height: 100%;
+}
+
+.rwdpa-contact-card__heading {
+	margin: 0 0 16px;
+	font-family: var(--rwdpa-heading-font);
+}
+
+.rwdpa-contact-card__name {
+	margin: 0 0 4px;
+	color: var(--rwdpa-name);
+	font-family: var(--rwdpa-highlight-font);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.rwdpa-contact-card__line {
+	margin: 0 0 4px;
+}
+
+.rwdpa-contact-card__line a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.rwdpa-contact-card__line a:hover,
+.rwdpa-contact-card__line a:focus {
+	text-decoration: underline;
+}
+
+/* Account bar */
+.rwdpa-account-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 8px 16px;
+}
+
+.rwdpa-account-bar__logout {
+	display: inline-block;
+	padding: 10px 28px;
+	border-radius: 999px;
+	background: var(--rwdpa-highlight);
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.rwdpa-account-bar__logout:hover,
+.rwdpa-account-bar__logout:focus {
+	color: #fff;
+	filter: brightness(1.1);
+}

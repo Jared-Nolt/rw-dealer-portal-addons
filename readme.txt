@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.0.3
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,8 +17,22 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 - Contractor list print and PDF features.
 - Service Area radius field support on dealers.
 - Service Area display enhancements for map results and map popups.
+- Dealer tiers: rank RW Dealer Portal roles as tiers, set the tier on each dealer, and sync it to linked users' portal roles.
+- Sales managers and territories: a manager role, territories with a manager and covered states, and per-dealer overrides.
+- Portal display shortcodes: [rwdpa_tier_card], [rwdpa_sales_manager], [rwdpa_office_contact], [rwdpa_account_bar].
+- Optional phone field on the Request Access form.
+
+All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.1.0 =
+- Added Dealer Portal → Portal Display settings (Dealer Tiers, Sales Managers, Office Contact, Registration tabs). Everything is off by default.
+- Added dealer tiers: rank, title, intro, badge, accent color and benefits per portal role. Tier and protected radius fields on dealers. Linked users' portal roles sync from their dealer's tier; optionally cumulative so "Visible To" a tier includes higher tiers.
+- Added sales managers: configurable manager role, Territories (manager + states) under Dealer Portal, territory/override fields on dealers, manager contact fields on user profiles.
+- Added shortcodes [rwdpa_tier_card] (with staff-only tier preview), [rwdpa_sales_manager], [rwdpa_office_contact] and [rwdpa_account_bar].
+- Added optional phone field on the Request Access form (shortcode and Elementor widget).
+- Added a read-only Dealer Portal Summary (tier, sales manager, phone) on user profiles.
 
 = 1.0.3 =
 - Restored service area radius toggle, results/popup text, and map labels after RW Dealer Portal 1.0.19 removed the `rwdp_map_localized_data` and `rwdp_ajax_dealer_data` filters. These now run through independent add-on-owned localized data instead of depending on core filters.
