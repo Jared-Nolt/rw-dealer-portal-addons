@@ -47,6 +47,7 @@ function rwdpa_portal_defaults() {
 		'benefits_heading'        => __( 'Your Benefits Include:', 'rw-dealer-portal-addons' ),
 		'enable_managers'         => 0,
 		'manager_role_label'      => __( 'Sales Manager', 'rw-dealer-portal-addons' ),
+		'manager_caps_from'       => '',
 		'default_manager'         => 0,
 		'manager_heading'         => __( 'Your Sales Manager:', 'rw-dealer-portal-addons' ),
 		'office_name'             => '',
@@ -152,6 +153,8 @@ function rwdpa_portal_sanitize( $raw ) {
 		$clean['enable_managers']    = ! empty( $raw['enable_managers'] ) ? 1 : 0;
 		$clean['manager_role_label'] = sanitize_text_field( $raw['manager_role_label'] ?? '' ) ?: rwdpa_portal_defaults()['manager_role_label'];
 		$clean['default_manager']    = absint( $raw['default_manager'] ?? 0 );
+		$caps_from                   = sanitize_key( $raw['manager_caps_from'] ?? '' );
+		$clean['manager_caps_from']  = ( '' !== $caps_from && RWDPA_MANAGER_ROLE !== $caps_from && get_role( $caps_from ) ) ? $caps_from : '';
 		$clean['manager_heading']    = sanitize_text_field( $raw['manager_heading'] ?? '' );
 	}
 
@@ -384,6 +387,24 @@ function rwdpa_portal_render_managers_tab( $settings ) {
 			<td>
 				<input type="text" id="rwdpa_manager_role_label" class="regular-text" name="rwdpa_portal[manager_role_label]" value="<?php echo esc_attr( $settings['manager_role_label'] ); ?>" />
 				<p class="description"><?php esc_html_e( 'Shown in Users → Role. The role slug stays rwdpa_sales_manager.', 'rw-dealer-portal-addons' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="rwdpa_manager_caps_from"><?php esc_html_e( 'Manager Permissions', 'rw-dealer-portal-addons' ); ?></label></th>
+			<td>
+				<select id="rwdpa_manager_caps_from" name="rwdpa_portal[manager_caps_from]">
+					<option value=""><?php esc_html_e( 'Portal access only', 'rw-dealer-portal-addons' ); ?></option>
+					<?php foreach ( wp_roles()->role_names as $role_slug => $role_name ) : ?>
+						<?php if ( RWDPA_MANAGER_ROLE === $role_slug ) { continue; } ?>
+						<option value="<?php echo esc_attr( $role_slug ); ?>" <?php selected( $settings['manager_caps_from'], $role_slug ); ?>>
+							<?php
+							/* translators: %s: role name */
+							printf( esc_html__( 'Same as %s', 'rw-dealer-portal-addons' ), esc_html( translate_user_role( $role_name ) ) );
+							?>
+						</option>
+					<?php endforeach; ?>
+				</select>
+				<p class="description"><?php esc_html_e( 'The manager role gets every capability of the chosen role, plus portal access. "Same as Administrator" gives managers full admin access to this site.', 'rw-dealer-portal-addons' ); ?></p>
 			</td>
 		</tr>
 		<tr>

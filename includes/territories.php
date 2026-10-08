@@ -81,18 +81,41 @@ function rwdpa_register_territories() {
 	] );
 
 	$label = (string) rwdpa_portal_setting( 'manager_role_label' );
+	$caps  = rwdpa_manager_role_caps();
 	$role  = get_role( RWDPA_MANAGER_ROLE );
 	if ( ! $role ) {
-		add_role( RWDPA_MANAGER_ROLE, $label, [
-			'read'        => true,
-			'view_portal' => true,
-		] );
-	} elseif ( wp_roles()->role_names[ RWDPA_MANAGER_ROLE ] !== $label ) {
-		$roles                                  = get_option( wp_roles()->role_key, [] );
-		$roles[ RWDPA_MANAGER_ROLE ]['name']    = $label;
+		add_role( RWDPA_MANAGER_ROLE, $label, $caps );
+		return;
+	}
+
+	// Rewrite the stored role only when its name or capabilities differ.
+	if ( wp_roles()->role_names[ RWDPA_MANAGER_ROLE ] !== $label || $role->capabilities != $caps ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual -- order-insensitive array compare
+		$roles                         = get_option( wp_roles()->role_key, [] );
+		$roles[ RWDPA_MANAGER_ROLE ] = [ 'name' => $label, 'capabilities' => $caps ];
 		update_option( wp_roles()->role_key, $roles );
 		wp_roles()->for_site();
 	}
+}
+
+/**
+ * Capabilities for the manager role: portal access, plus every capability of
+ * the role chosen in Manager Permissions.
+ *
+ * @return array<string,bool>
+ */
+function rwdpa_manager_role_caps() {
+	$caps = [
+		'read'        => true,
+		'view_portal' => true,
+	];
+
+	$from = (string) rwdpa_portal_setting( 'manager_caps_from' );
+	$base = ( '' !== $from && RWDPA_MANAGER_ROLE !== $from ) ? get_role( $from ) : null;
+	if ( $base ) {
+		$caps = array_merge( array_filter( $base->capabilities ), $caps );
+	}
+
+	return $caps;
 }
 
 /**
