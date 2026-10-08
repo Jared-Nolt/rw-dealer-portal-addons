@@ -33,6 +33,8 @@ add_action( 'show_user_profile', 'rwdpa_render_manager_profile_fields' );
 add_action( 'edit_user_profile', 'rwdpa_render_manager_profile_fields' );
 add_action( 'personal_options_update', 'rwdpa_save_manager_profile_fields' );
 add_action( 'edit_user_profile_update', 'rwdpa_save_manager_profile_fields' );
+add_action( 'profile_update', 'rwdpa_apply_manager_flag', 25 );
+add_action( 'set_user_role', 'rwdpa_manager_role_changed', 10, 2 );
 add_filter( 'rwdpa_user_portal_summary_rows', 'rwdpa_manager_summary_rows', 20, 2 );
 add_shortcode( 'rwdpa_sales_manager', 'rwdpa_sales_manager_shortcode' );
 
@@ -460,7 +462,12 @@ function rwdpa_save_dealer_manager_fields( $post_id ) {
  * @param WP_User $user User being edited.
  */
 function rwdpa_render_manager_profile_fields( $user ) {
-	if ( ! rwdpa_managers_enabled() || ! in_array( RWDPA_MANAGER_ROLE, (array) $user->roles, true ) ) {
+	if ( ! rwdpa_managers_enabled() ) {
+		return;
+	}
+
+	$is_manager = rwdpa_user_is_manager( $user );
+	if ( ! $is_manager && ! current_user_can( 'promote_users' ) ) {
 		return;
 	}
 
@@ -474,6 +481,16 @@ function rwdpa_render_manager_profile_fields( $user ) {
 	?>
 	<h2><?php echo esc_html( (string) rwdpa_portal_setting( 'manager_role_label' ) ); ?></h2>
 	<table class="form-table" role="presentation">
+		<?php if ( current_user_can( 'promote_users' ) ) : ?>
+			<tr>
+				<th scope="row"><?php echo esc_html( (string) rwdpa_portal_setting( 'manager_role_label' ) ); ?></th>
+				<td>
+					<label><input type="checkbox" name="rwdpa_is_manager" value="1" <?php checked( $is_manager ); ?> /> <?php esc_html_e( 'This user is a sales manager', 'rw-dealer-portal-addons' ); ?></label>
+					<p class="description"><?php esc_html_e( 'Added as an extra role, so administrators and other staff keep their own role and permissions.', 'rw-dealer-portal-addons' ); ?></p>
+				</td>
+			</tr>
+		<?php endif; ?>
+		<?php if ( $is_manager ) : ?>
 		<tr>
 			<th scope="row"><label for="rwdpa_manager_phone"><?php esc_html_e( 'Mobile / Text', 'rw-dealer-portal-addons' ); ?></label></th>
 			<td><input type="text" id="rwdpa_manager_phone" name="rwdpa_manager_phone" class="regular-text" value="<?php echo esc_attr( get_user_meta( $user->ID, '_rwdpa_manager_phone', true ) ); ?>" /></td>
@@ -497,6 +514,7 @@ function rwdpa_render_manager_profile_fields( $user ) {
 				?>
 			</td>
 		</tr>
+		<?php endif; ?>
 	</table>
 	<?php
 }
@@ -514,8 +532,74 @@ function rwdpa_save_manager_profile_fields( $user_id ) {
 		return;
 	}
 
-	update_user_meta( $user_id, '_rwdpa_manager_phone', sanitize_text_field( wp_unslash( $_POST['rwdpa_manager_phone'] ?? '' ) ) );
-	update_user_meta( $user_id, '_rwdpa_manager_email', sanitize_email( wp_unslash( $_POST['rwdpa_manager_email'] ?? '' ) ) );
+	if ( current_user_can( 'promote_users' ) ) {
+		update_user_meta( $user_id, '_rwdpa_is_manager', empty( $_POST['rwdpa_is_manager'] ) ? '0' : '1' );
+	}
+	if ( isset( $_POST['rwdpa_manager_phone'] ) ) {
+		update_user_meta( $user_id, '_rwdpa_manager_phone', sanitize_text_field( wp_unslash( $_POST['rwdpa_manager_phone'] ) ) );
+		update_user_meta( $user_id, '_rwdpa_manager_email', sanitize_email( wp_unslash( $_POST['rwdpa_manager_email'] ?? '' ) ) );
+	}
+}
+
+/**
+ * Whether a user is a sales manager (primary or extra role).
+ *
+ * @param WP_User|int $user User or ID.
+ * @return bool
+ */
+function rwdpa_user_is_manager( $user ) {
+	$user = $user instanceof WP_User ? $user : get_userdata( $user );
+	return $user && in_array( RWDPA_MANAGER_ROLE, (array) $user->roles, true );
+}
+
+/**
+ * Apply the profile checkbox after WordPress has saved the role dropdown,
+ * which replaces all roles with the single selected one.
+ *
+ * @param int $user_id User ID.
+ */
+function rwdpa_apply_manager_flag( $user_id ) {
+	if ( ! rwdpa_managers_enabled() ) {
+		return;
+	}
+	$flag = get_user_meta( $user_id, '_rwdpa_is_manager', true );
+	$user = get_userdata( $user_id );
+	if ( ! $user || '' === $flag ) {
+		return;
+	}
+
+	if ( '1' === $flag && ! rwdpa_user_is_manager( $user ) ) {
+		$user->add_role( RWDPA_MANAGER_ROLE );
+	} elseif ( '0' === $flag && rwdpa_user_is_manager( $user ) ) {
+		$user->remove_role( RWDPA_MANAGER_ROLE );
+		if ( ! $user->roles ) {
+			$user->set_role( get_option( 'default_role', 'subscriber' ) );
+		}
+	}
+}
+
+/**
+ * Keep the manager flag in step with role changes made elsewhere (role
+ * dropdown, bulk "Change role to"), re-adding the extra manager role when a
+ * flagged user is given another primary role.
+ *
+ * @param int    $user_id User ID.
+ * @param string $role    New primary role.
+ */
+function rwdpa_manager_role_changed( $user_id, $role ) {
+	if ( ! rwdpa_managers_enabled() ) {
+		return;
+	}
+	if ( RWDPA_MANAGER_ROLE === $role ) {
+		update_user_meta( $user_id, '_rwdpa_is_manager', '1' );
+		return;
+	}
+	if ( '1' === get_user_meta( $user_id, '_rwdpa_is_manager', true ) ) {
+		$user = get_userdata( $user_id );
+		if ( $user && ! rwdpa_user_is_manager( $user ) ) {
+			$user->add_role( RWDPA_MANAGER_ROLE );
+		}
+	}
 }
 
 /**
@@ -526,7 +610,7 @@ function rwdpa_save_manager_profile_fields( $user_id ) {
  * @return array<string,string>
  */
 function rwdpa_manager_summary_rows( $rows, $user ) {
-	if ( ! rwdpa_managers_enabled() || in_array( RWDPA_MANAGER_ROLE, (array) $user->roles, true ) ) {
+	if ( ! rwdpa_managers_enabled() || rwdpa_user_is_manager( $user ) ) {
 		return $rows;
 	}
 
