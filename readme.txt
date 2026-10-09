@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.3.1
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,11 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.4.0 =
+- Added Addons → "Use service area" setting (on by default). When off, the radius field, saving, and map circle/labels are disabled.
+- The Service Area radius field now lives in the Portal Details box with the other dealer portal fields; the separate "Dealer Add-ons" box only appears for Business Hours on older core versions. Stored data (_rwdp_service_radius_miles) is unchanged.
+- Tier benefits that use {protected_radius} are now hidden for dealers without a protected radius (previously filled with fallback text).
 
 = 1.3.1 =
 - Sales managers (who are not also administrators) can never see, edit, promote or delete administrators or other managers; never get plugin, theme, core-update, settings (manage_options) or unfiltered HTML capabilities; and are excluded from the Elementor editor. Filters: rwdpa_manager_blocked_caps, rwdpa_manager_protected_roles.

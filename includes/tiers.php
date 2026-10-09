@@ -209,7 +209,7 @@ function rwdpa_render_dealer_tier_fields( $post ) {
 	<p>
 		<label for="rwdpa_protected_radius"><strong><?php esc_html_e( 'Protected Radius', 'rw-dealer-portal-addons' ); ?></strong></label><br />
 		<input type="text" id="rwdpa_protected_radius" name="rwdpa_protected_radius" value="<?php echo esc_attr( $radius ); ?>" placeholder="<?php esc_attr_e( 'e.g. 25 miles', 'rw-dealer-portal-addons' ); ?>" style="width:100%;" />
-		<span class="description"><?php esc_html_e( 'Private. Fills {protected_radius} in tier benefits.', 'rw-dealer-portal-addons' ); ?></span>
+		<span class="description"><?php esc_html_e( 'Private. Fills {protected_radius} in tier benefits; when empty, benefits that use it are hidden for this dealer.', 'rw-dealer-portal-addons' ); ?></span>
 	</p>
 	<?php
 }
@@ -397,10 +397,16 @@ function rwdpa_tier_card_shortcode( $atts = [] ) {
 
 	$tier   = $tiers[ $slug ];
 	$radius = rwdpa_get_dealer_protected_radius( rwdpa_get_user_primary_dealer( $user_id ) );
-	$radius = '' !== $radius ? $radius : (string) apply_filters( 'rwdpa_protected_radius_fallback', __( 'your agreed-upon area', 'rw-dealer-portal-addons' ) );
 	$fill   = static function ( $text ) use ( $radius ) {
 		return str_replace( '{protected_radius}', esc_html( $radius ), $text );
 	};
+
+	// No protected radius means no territory agreement: drop benefits that reference it.
+	if ( '' === $radius ) {
+		$tier['benefits'] = array_values( array_filter( $tier['benefits'], static function ( $benefit ) {
+			return false === strpos( $benefit['text'], '{protected_radius}' );
+		} ) );
+	}
 
 	wp_enqueue_style( 'rwdpa-portal-display', RWDPA_PLUGIN_URL . 'assets/css/portal-display.css', [], RWDPA_VERSION );
 

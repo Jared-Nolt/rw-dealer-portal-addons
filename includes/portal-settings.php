@@ -295,7 +295,7 @@ function rwdpa_portal_render_tiers_tab( $settings ) {
 			'<a href="' . esc_url( admin_url( 'admin.php?page=rwdp-settings&tab=portal_roles' ) ) . '">' . esc_html__( 'Dealer Portal → Settings → Portal Roles', 'rw-dealer-portal-addons' ) . '</a>'
 		);
 		?>
-		<?php esc_html_e( 'In benefits and intro text, {protected_radius} is replaced with the dealer\'s protected radius.', 'rw-dealer-portal-addons' ); ?>
+		<?php esc_html_e( 'In benefits and intro text, {protected_radius} is replaced with the dealer\'s protected radius. Benefits that use it are hidden for dealers without one.', 'rw-dealer-portal-addons' ); ?>
 	</p>
 
 	<?php foreach ( $roles as $slug => $role_label ) : ?>

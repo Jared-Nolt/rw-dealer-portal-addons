@@ -18,7 +18,7 @@ add_action( 'edit_user_profile', 'rwdpa_render_user_portal_summary', 20 );
  * Register the meta box when a module needs it.
  */
 function rwdpa_register_portal_details_meta_box() {
-	if ( ! rwdpa_tiers_enabled() && ! rwdpa_managers_enabled() ) {
+	if ( ! rwdpa_tiers_enabled() && ! rwdpa_managers_enabled() && ! rwdpa_service_area_enabled() ) {
 		return;
 	}
 
@@ -27,7 +27,7 @@ function rwdpa_register_portal_details_meta_box() {
 		__( 'Portal Details', 'rw-dealer-portal-addons' ),
 		'rwdpa_render_portal_details_meta_box',
 		'rw_dealer',
-		'side',
+		'normal',
 		'default'
 	);
 }

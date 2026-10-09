@@ -3,9 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_action( 'rwdp_dealer_info_meta_box_after', 'rwdpa_render_service_radius_field' );
-add_action( 'rwdp_save_dealer_meta', 'rwdpa_save_service_radius_field', 10, 2 );
-add_action( 'save_post_rw_dealer', 'rwdpa_save_service_radius_field', 20, 2 );
+add_action( 'rwdpa_dealer_portal_fields', 'rwdpa_render_service_radius_field', 5 );
+add_action( 'rwdpa_save_dealer_portal_fields', 'rwdpa_save_service_radius_field', 5 );
 add_action( 'save_post_rw_dealer', 'rwdpa_save_dealer_hours_field', 20, 2 );
 add_action( 'add_meta_boxes_rw_dealer', 'rwdpa_register_dealer_editor_fallback_meta_box' );
 add_filter( 'rwdp_map_localized_data', 'rwdpa_add_service_radius_map_text' );
@@ -14,6 +13,16 @@ add_action( 'wp_enqueue_scripts', 'rwdpa_enqueue_service_area_assets', 100 );
 add_action( 'wp_print_footer_scripts', 'rwdpa_enqueue_service_area_assets', 1 );
 add_action( 'rwdp_import_dealer_extra_fields', 'rwdpa_import_service_radius', 10, 2 );
 add_action( 'rwdp_import_csv_column_hints', 'rwdpa_import_service_radius_column_hint' );
+
+/**
+ * Whether the service area feature is on (Addons settings; on by default).
+ *
+ * @return bool
+ */
+function rwdpa_service_area_enabled() {
+	$settings = function_exists( 'rwdpa_get_settings' ) ? rwdpa_get_settings() : [];
+	return ! empty( $settings['enable_service_area'] );
+}
 
 /**
  * Determine whether the core dealer editor still provides the add-on hook and hours field.
@@ -76,17 +85,17 @@ function rwdpa_can_save_dealer_meta( $post_id ) {
  * @param WP_Post $post Dealer post object.
  */
 function rwdpa_render_service_radius_field( $post ) {
+	if ( ! rwdpa_service_area_enabled() ) {
+		return;
+	}
+
 	$service_radius = get_post_meta( $post->ID, '_rwdp_service_radius_miles', true );
 	?>
-	<p class="rwdp-meta-section-title"><?php esc_html_e( 'Service Area', 'rw-dealer-portal-addons' ); ?></p>
-
-	<div class="rwdp-meta-row">
-		<label for="rwdpa_service_radius_miles"><?php esc_html_e( 'Radius (miles)', 'rw-dealer-portal-addons' ); ?></label>
-		<div>
-			<input type="number" id="rwdpa_service_radius_miles" name="rwdpa_service_radius_miles" min="0" step="1" value="<?php echo esc_attr( absint( $service_radius ) ); ?>" style="max-width:120px;" />
-			<p class="description"><?php esc_html_e( 'Optional contractor service area radius in miles. Leave blank or 0 to hide.', 'rw-dealer-portal-addons' ); ?></p>
-		</div>
-	</div>
+	<p>
+		<label for="rwdpa_service_radius_miles"><strong><?php esc_html_e( 'Service Area Radius (miles)', 'rw-dealer-portal-addons' ); ?></strong></label><br />
+		<input type="number" id="rwdpa_service_radius_miles" name="rwdpa_service_radius_miles" min="0" step="1" value="<?php echo esc_attr( absint( $service_radius ) ); ?>" style="max-width:120px;" />
+		<span class="description" style="display:block;"><?php esc_html_e( 'Public. Drawn on the dealer map. Leave blank or 0 to hide.', 'rw-dealer-portal-addons' ); ?></span>
+	</p>
 	<?php
 }
 
@@ -96,7 +105,8 @@ function rwdpa_render_service_radius_field( $post ) {
 function rwdpa_register_dealer_editor_fallback_meta_box() {
 	$support = rwdpa_core_dealer_editor_support();
 
-	if ( ! empty( $support['hook'] ) && ! empty( $support['hours'] ) ) {
+	// Only needed for Business Hours on core versions that no longer render them.
+	if ( ! empty( $support['hours'] ) ) {
 		return;
 	}
 
@@ -118,7 +128,7 @@ function rwdpa_register_dealer_editor_fallback_meta_box() {
 function rwdpa_render_dealer_fields_fallback_meta_box( $post ) {
 	$support = rwdpa_core_dealer_editor_support();
 
-	if ( empty( $support['hook'] ) || empty( $support['hours'] ) ) {
+	if ( empty( $support['hours'] ) ) {
 		wp_nonce_field( 'rwdp_save_dealer_meta', 'rwdp_dealer_meta_nonce' );
 	}
 
@@ -134,25 +144,20 @@ function rwdpa_render_dealer_fields_fallback_meta_box( $post ) {
 		<?php
 	}
 
-	if ( empty( $support['hook'] ) ) {
-		rwdpa_render_service_radius_field( $post );
-	}
 }
 
 /**
- * Persist service area field.
+ * Persist service area field (Portal Details box; nonce and capability are
+ * verified before this runs).
  *
- * @param int     $post_id Dealer post ID.
- * @param WP_Post $post    Dealer post object.
+ * @param int $post_id Dealer post ID.
  */
-function rwdpa_save_service_radius_field( $post_id, $post ) {
-	unset( $post );
-
-	if ( ! rwdpa_can_save_dealer_meta( $post_id ) ) {
+function rwdpa_save_service_radius_field( $post_id ) {
+	if ( ! rwdpa_service_area_enabled() || ! isset( $_POST['rwdpa_service_radius_miles'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		return;
 	}
 
-	$radius = absint( wp_unslash( $_POST['rwdpa_service_radius_miles'] ?? 0 ) );
+	$radius = absint( wp_unslash( $_POST['rwdpa_service_radius_miles'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 	update_post_meta( $post_id, '_rwdp_service_radius_miles', $radius );
 }
 
@@ -245,7 +250,7 @@ function rwdpa_get_service_radii_map() {
  */
 function rwdpa_enqueue_service_area_assets() {
 	static $done = false;
-	if ( $done ) {
+	if ( $done || ! rwdpa_service_area_enabled() ) {
 		return;
 	}
 
