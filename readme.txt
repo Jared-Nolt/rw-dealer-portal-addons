@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,9 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.4.1 =
+- Added Addons → Dealer URL Base: change the /dealer/ permalink base for RW Dealer Portal dealers when another post type already uses it. Empty keeps the default; permalinks are flushed on change.
 
 = 1.4.0 =
 - Added Addons → "Use service area" setting (on by default). When off, the radius field, saving, and map circle/labels are disabled.
