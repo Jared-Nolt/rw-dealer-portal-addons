@@ -3,6 +3,7 @@
  * can restyle them without overriding selectors. */
 
 .rwdpa-tier-card,
+.rwdpa-tier-badge,
 .rwdpa-contact-card,
 .rwdpa-account-bar,
 .rwdpa-tier-preview {
@@ -187,4 +188,45 @@
 .rwdpa-account-bar__logout:focus {
 	color: #fff;
 	filter: brightness(1.1);
+}
+
+/* Tier badge download */
+.rwdpa-tier-badge {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 16px;
+	border-radius: 12px;
+	background: var(--rwdpa-surface);
+	text-align: center;
+}
+
+.rwdpa-tier-badge__heading {
+	margin: 0;
+	font-family: var(--rwdpa-highlight-font);
+}
+
+.rwdpa-tier-badge__image img {
+	display: block;
+	width: 100%;
+	max-width: 260px;
+	height: auto;
+}
+
+.rwdpa-tier-badge__download {
+	display: inline-block;
+	min-width: 150px;
+	padding: 14px 24px;
+	border: 2px solid var(--rwdpa-highlight);
+	border-radius: 48px;
+	color: var(--rwdpa-highlight);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.rwdpa-tier-badge__download:hover,
+.rwdpa-tier-badge__download:focus {
+	background: var(--rwdpa-highlight);
+	color: #fff;
 }

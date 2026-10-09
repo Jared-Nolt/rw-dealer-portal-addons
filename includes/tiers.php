@@ -23,6 +23,7 @@ add_action( 'updated_user_meta', 'rwdpa_sync_on_user_meta_change', 10, 3 );
 add_action( 'profile_update', 'rwdpa_sync_user_tier_roles', 20 );
 add_filter( 'rwdpa_user_portal_summary_rows', 'rwdpa_tier_summary_rows', 10, 2 );
 add_shortcode( 'rwdpa_tier_card', 'rwdpa_tier_card_shortcode' );
+add_shortcode( 'rwdpa_tier_badge', 'rwdpa_tier_badge_shortcode' );
 
 /**
  * Whether tiers are enabled.
@@ -448,6 +449,52 @@ function rwdpa_tier_card_shortcode( $atts = [] ) {
 			<?php endforeach; ?>
 		</nav>
 	<?php endif; ?>
+	<?php
+	return (string) ob_get_clean();
+}
+
+/**
+ * [rwdpa_tier_badge] — the current dealer's tier badge with a download button.
+ * Shows nothing for tiers without a badge. Honors the staff tier preview.
+ *
+ * Attributes: heading, button_text.
+ *
+ * @param array|string $atts Shortcode attributes.
+ * @return string
+ */
+function rwdpa_tier_badge_shortcode( $atts = [] ) {
+	if ( ! rwdpa_tiers_enabled() || ! is_user_logged_in() ) {
+		return '';
+	}
+
+	$atts = shortcode_atts( [
+		'heading'     => __( 'Your Dealer Badge', 'rw-dealer-portal-addons' ),
+		'button_text' => __( 'Download', 'rw-dealer-portal-addons' ),
+	], $atts, 'rwdpa_tier_badge' );
+
+	$slug = rwdpa_get_preview_tier() ?: rwdpa_get_user_tier( get_current_user_id() );
+	$tier = rwdpa_get_tiers()[ $slug ] ?? null;
+	if ( ! $tier || ! $tier['badge_id'] ) {
+		return '';
+	}
+
+	$url  = wp_get_attachment_url( $tier['badge_id'] );
+	$file = basename( (string) get_attached_file( $tier['badge_id'] ) );
+	if ( ! $url ) {
+		return '';
+	}
+
+	wp_enqueue_style( 'rwdpa-portal-display', RWDPA_PLUGIN_URL . 'assets/css/portal-display.css', [], RWDPA_VERSION );
+
+	ob_start();
+	?>
+	<div class="rwdpa-tier-badge rwdpa-tier-badge--<?php echo esc_attr( sanitize_html_class( $slug ) ); ?>">
+		<?php if ( $atts['heading'] ) : ?>
+			<h3 class="rwdpa-tier-badge__heading"><?php echo esc_html( $atts['heading'] ); ?></h3>
+		<?php endif; ?>
+		<div class="rwdpa-tier-badge__image"><?php echo wp_get_attachment_image( $tier['badge_id'], 'medium', false, [ 'alt' => esc_attr( $tier['title'] ) ] ); ?></div>
+		<a class="rwdpa-tier-badge__download" href="<?php echo esc_url( $url ); ?>" download="<?php echo esc_attr( $file ); ?>"><?php echo esc_html( $atts['button_text'] ); ?></a>
+	</div>
 	<?php
 	return (string) ob_get_clean();
 }

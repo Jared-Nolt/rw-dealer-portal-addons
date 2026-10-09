@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 add_shortcode( 'rwdpa_account_bar', 'rwdpa_account_bar_shortcode' );
 add_shortcode( 'rwdpa_office_contact', 'rwdpa_office_contact_shortcode' );
+add_shortcode( 'rwdpa_asset_category', 'rwdpa_asset_category_shortcode' );
 
 /**
  * [rwdpa_account_bar] — "Hello, First Last" with a log out button.
@@ -90,4 +91,29 @@ function rwdpa_office_contact_shortcode( $atts = [] ) {
 	</div>
 	<?php
 	return (string) ob_get_clean();
+}
+
+/**
+ * [rwdpa_asset_category term="slug"] — one RW Dealer Portal asset category
+ * (child category cards, then its assets), rendered by the core view. Lets a
+ * page show several categories in any order.
+ *
+ * Attributes: term (category slug), download_icon (CSS classes).
+ *
+ * @param array|string $atts Shortcode attributes.
+ * @return string
+ */
+function rwdpa_asset_category_shortcode( $atts = [] ) {
+	if ( ! function_exists( 'rwdp_render_asset_taxonomy_view' ) ) {
+		return '';
+	}
+	$atts = shortcode_atts( [
+		'term'          => '',
+		'download_icon' => 'dashicons dashicons-download',
+	], $atts, 'rwdpa_asset_category' );
+
+	if ( '' === $atts['term'] ) {
+		return '';
+	}
+	return rwdp_render_asset_taxonomy_view( $atts );
 }
