@@ -112,8 +112,27 @@ function rwdpa_asset_category_shortcode( $atts = [] ) {
 		'download_icon' => 'dashicons dashicons-download',
 	], $atts, 'rwdpa_asset_category' );
 
-	if ( '' === $atts['term'] ) {
+	static $rendering = false;
+	if ( '' === $atts['term'] || $rendering ) {
 		return '';
 	}
-	return rwdp_render_asset_taxonomy_view( $atts );
+
+	// The core view runs the_content for each asset. On an Elementor page that
+	// filter re-renders the whole page (which contains this shortcode), looping
+	// until PHP crashes. Pause Elementor's content filter while rendering.
+	$frontend = class_exists( '\Elementor\Plugin' ) ? \Elementor\Plugin::$instance->frontend : null;
+	$paused   = $frontend && method_exists( $frontend, 'remove_content_filter' ) && has_filter( 'the_content', [ $frontend, 'apply_builder_in_content' ] );
+	if ( $paused ) {
+		$frontend->remove_content_filter();
+	}
+
+	$rendering = true;
+	$html      = rwdp_render_asset_taxonomy_view( $atts );
+	$rendering = false;
+
+	if ( $paused ) {
+		$frontend->add_content_filter();
+	}
+
+	return $html;
 }
