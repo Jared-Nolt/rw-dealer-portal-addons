@@ -48,6 +48,7 @@ function rwdpa_get_settings() {
 		'show_service_area_in_popup'   => 1,
 		'show_print_button_on_map'     => 0,
 		'print_button_text'            => __( 'Download Contractor List', 'rw-dealer-portal-addons' ),
+		'finder_style'                 => 0,
 	];
 
 	$settings = get_option( 'rwdpa_settings', [] );
@@ -84,6 +85,7 @@ function rwdpa_get_settings() {
 	$settings['enable_service_area'] = ! empty( $settings['enable_service_area'] ) ? 1 : 0;
 	$settings['show_service_area_in_popup'] = ! empty( $settings['show_service_area_in_popup'] ) ? 1 : 0;
 	$settings['show_print_button_on_map'] = ! empty( $settings['show_print_button_on_map'] ) ? 1 : 0;
+	$settings['finder_style'] = ! empty( $settings['finder_style'] ) ? 1 : 0;
 	$settings['print_button_text'] = sanitize_text_field( $settings['print_button_text'] ?? '' );
 	if ( '' === $settings['print_button_text'] ) {
 		$settings['print_button_text'] = $defaults['print_button_text'];
@@ -127,6 +129,7 @@ function rwdpa_sanitize_settings( $raw ) {
 	$clean['enable_service_area'] = ! empty( $raw['enable_service_area'] ) ? 1 : 0;
 	$clean['show_service_area_in_popup'] = ! empty( $raw['show_service_area_in_popup'] ) ? 1 : 0;
 	$clean['show_print_button_on_map'] = ! empty( $raw['show_print_button_on_map'] ) ? 1 : 0;
+	$clean['finder_style'] = ! empty( $raw['finder_style'] ) ? 1 : 0;
 	$clean['print_button_text'] = sanitize_text_field( $raw['print_button_text'] ?? '' );
 	if ( '' === $clean['print_button_text'] ) {
 		$clean['print_button_text'] = __( 'Download Contractor List', 'rw-dealer-portal-addons' );
@@ -260,6 +263,17 @@ function rwdpa_render_settings_page() {
 								<?php esc_html_e( 'Show service area value in Dealer Map popup', 'rw-dealer-portal-addons' ); ?>
 							</label>
 						</fieldset>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Dealer Finder Layout', 'rw-dealer-portal-addons' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="rwdpa_settings[finder_style]" value="1" <?php checked( ! empty( $settings['finder_style'] ) ); ?> />
+							<?php esc_html_e( 'Store-locator layout for the Dealer Search, Dealer Map and Dealer List widgets: search on top, a scrollable dealer list beside a map that stays in view (stacked on phones), and cleaner result cards.', 'rw-dealer-portal-addons' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Put the three widgets in the same classic Elementor Container. Colors and fonts: --rwdpa-finder-accent, --rwdpa-finder-link, --rwdpa-finder-label-font, --rwdpa-finder-height (CSS custom properties on body).', 'rw-dealer-portal-addons' ); ?></p>
 					</td>
 				</tr>
 

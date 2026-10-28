@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,9 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.6.0 =
+* New optional "Dealer Finder Layout" (Addons settings, off by default): store-locator layout for the Dealer Search, Dealer Map and Dealer List widgets — search on top, scrollable dealer list beside a map that stays in view, stacked on phones — and cleaner result cards. Themeable with CSS custom properties.
 
 = 1.5.1 =
 - Fixed a fatal infinite loop (502/500) when [rwdpa_asset_category] is used on an Elementor page by a logged-in portal user: the core asset view runs the_content, which Elementor answered by re-rendering the page. Elementor's content filter is now paused while the asset view renders.
