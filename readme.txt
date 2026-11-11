@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,9 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.7.0 =
+* New optional address field on the Request Access form (Portal Display → Registration, off by default): street, city, state and ZIP, optionally required. Saved to the user as _rwdpa_address and shown on their profile.
 
 = 1.6.0 =
 * New optional "Dealer Finder Layout" (Addons settings, off by default): store-locator layout for the Dealer Search, Dealer Map and Dealer List widgets — search on top, scrollable dealer list beside a map that stays in view, stacked on phones — and cleaner result cards. Themeable with CSS custom properties.

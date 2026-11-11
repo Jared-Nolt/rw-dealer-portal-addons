@@ -33,7 +33,7 @@ Owner: Jared Nolt / Rosewood Marketing. Used on several client sites (e.g. Monar
 | `includes/territories.php` | Sales manager role `rwdpa_sales_manager`, Territories taxonomy `rwdpa_territory` (manager + states), resolution override → territory → state → fallback; `[rwdpa_sales_manager]`; "is a sales manager" profile checkbox; Manager Permissions (copy another role's caps). |
 | `includes/manager-restrictions.php` | Limits on managers (blocked caps, can't touch admins/managers, excluded from Elementor). Filters `rwdpa_manager_blocked_caps`, `rwdpa_manager_protected_roles`. |
 | `includes/portal-shortcodes.php` | `[rwdpa_account_bar]`, `[rwdpa_office_contact]`, `[rwdpa_asset_category term=""]`. |
-| `includes/registration-fields.php` | Optional phone field injected into the core Request Access form. |
+| `includes/registration-fields.php` | Optional phone (`_rwdpa_phone`) and address (`_rwdpa_address`: street/city/state/zip) fields injected into the core Request Access form. |
 | `includes/import-tool.php` | Portal Display → **Import**: dealer tier/radius/territory/manager + link users by email (`rwdpa_import_run()`, dry run). |
 | `includes/asset-import.php` | Portal Display → **Import Assets**: create/update `rw_asset` posts from CSV (`rwdpa_asset_import_run()`, dry run). |
 | `assets/css/portal-display.css` | Front-end styles for the shortcodes; theming via CSS custom properties (`--rwdpa-*`), no site-specific values. |
