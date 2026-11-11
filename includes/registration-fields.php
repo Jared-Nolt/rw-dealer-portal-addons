@@ -1,7 +1,7 @@
 <?php
 /**
- * Extra fields on the core Request Access form (shortcode and Elementor
- * widget). The core form is submitted with jQuery serialize(), so injected
+ * Extra fields (username, phone, address) on the core Request Access form
+ * (shortcode and Elementor widget). The core form is submitted with jQuery serialize(), so injected
  * inputs arrive with the core AJAX request.
  */
 
@@ -23,6 +23,24 @@ add_filter( 'rwdpa_user_portal_summary_rows', 'rwdpa_registration_summary_rows',
  */
 function rwdpa_registration_phone_enabled() {
 	return (bool) rwdpa_portal_setting( 'registration_phone' );
+}
+
+/**
+ * Whether the username field is on.
+ *
+ * @return bool
+ */
+function rwdpa_registration_username_enabled() {
+	return (bool) rwdpa_portal_setting( 'registration_username' );
+}
+
+/**
+ * Submitted username, sanitized ('' when none).
+ *
+ * @return string
+ */
+function rwdpa_registration_posted_username() {
+	return sanitize_user( trim( (string) wp_unslash( $_POST['rwdpa_username'] ?? '' ) ), true ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized by sanitize_user(); callers verify the nonce
 }
 
 /**
@@ -96,7 +114,8 @@ function rwdpa_registration_filter_widget( $content, $widget ) {
 }
 
 /**
- * Insert the enabled fields before the form's message area.
+ * Insert the enabled fields: username and address right after the email row,
+ * phone before the form's message area.
  *
  * @param string $html Form HTML.
  * @return string
@@ -108,19 +127,49 @@ function rwdpa_registration_inject_fields( $html ) {
 	}
 
 	$show_labels = false === strpos( $html, 'rwdp-auth-panel--no-labels' );
-	$fields      = '';
-	if ( rwdpa_registration_phone_enabled() ) {
-		$fields .= rwdpa_registration_phone_html( $show_labels );
+
+	$after_email = '';
+	if ( rwdpa_registration_username_enabled() ) {
+		$after_email .= rwdpa_registration_username_html( $show_labels );
 	}
 	if ( rwdpa_registration_address_enabled() ) {
-		$fields .= rwdpa_registration_address_html( $show_labels );
+		$after_email .= rwdpa_registration_address_html( $show_labels );
 	}
-	if ( '' === $fields ) {
-		return $html;
-	}
+	$before_message = rwdpa_registration_phone_enabled() ? rwdpa_registration_phone_html( $show_labels ) : '';
 
-	$pos = strpos( $html, $marker );
-	return substr( $html, 0, $pos ) . $fields . substr( $html, $pos );
+	// Insert at the later position first so the earlier one stays valid.
+	if ( '' !== $before_message ) {
+		$pos  = strpos( $html, $marker );
+		$html = substr( $html, 0, $pos ) . $before_message . substr( $html, $pos );
+	}
+	if ( '' !== $after_email ) {
+		$email = strpos( $html, 'id="rwdp_reg_email"' );
+		$close = false !== $email ? strpos( $html, '</div>', $email ) : false;
+		$pos   = false !== $close ? $close + strlen( '</div>' ) : strpos( $html, $marker );
+		$html  = substr( $html, 0, $pos ) . $after_email . substr( $html, $pos );
+	}
+	return $html;
+}
+
+/**
+ * Username field HTML.
+ *
+ * @param bool $show_labels Whether the form shows labels.
+ * @return string
+ */
+function rwdpa_registration_username_html( $show_labels ) {
+	$text = (string) rwdpa_portal_setting( 'registration_username_text' );
+
+	ob_start();
+	?>
+	<div class="rwdp-form-row rwdpa-form-row--username">
+		<?php if ( $show_labels ) : ?>
+			<label for="rwdpa_reg_username"><?php echo esc_html( $text ); ?> <span class="required">*</span></label>
+		<?php endif; ?>
+		<input type="text" id="rwdpa_reg_username" name="rwdpa_username" autocomplete="username" autocapitalize="none" spellcheck="false" required<?php echo $show_labels ? '' : ' placeholder="' . esc_attr( $text . ' *' ) . '"'; ?> />
+	</div>
+	<?php
+	return (string) ob_get_clean();
 }
 
 /**
@@ -181,16 +230,32 @@ function rwdpa_registration_address_html( $show_labels ) {
 }
 
 /**
- * Reject the request before the core handler runs when a required field is empty.
+ * Reject the request before the core handler runs when a field is invalid.
+ * A chosen username replaces the one core generates (see rwdpa_registration_use_username()).
  */
 function rwdpa_registration_validate() {
+	$username_on = rwdpa_registration_username_enabled();
 	$phone_req   = rwdpa_registration_phone_enabled() && rwdpa_portal_setting( 'registration_phone_req' );
 	$address_req = rwdpa_registration_address_enabled() && rwdpa_portal_setting( 'registration_address_req' );
-	if ( ! $phone_req && ! $address_req ) {
+	if ( ! $username_on && ! $phone_req && ! $address_req ) {
 		return;
 	}
 	check_ajax_referer( 'rwdp_registration', 'nonce' );
 
+	if ( $username_on ) {
+		$raw      = trim( (string) wp_unslash( $_POST['rwdpa_username'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- compared with its sanitized form only
+		$username = rwdpa_registration_posted_username();
+		if ( '' === $username ) {
+			wp_send_json_error( [ 'message' => __( 'Please choose a username.', 'rw-dealer-portal-addons' ) ] );
+		}
+		if ( $username !== $raw || ! validate_username( $username ) || strlen( $username ) < 3 || strlen( $username ) > 60 ) {
+			wp_send_json_error( [ 'message' => __( 'Usernames must be 3–60 characters and use only letters, numbers, spaces and . - _ @', 'rw-dealer-portal-addons' ) ] );
+		}
+		if ( username_exists( $username ) || in_array( strtolower( $username ), array_map( 'strtolower', (array) apply_filters( 'illegal_user_logins', [] ) ), true ) ) {
+			wp_send_json_error( [ 'message' => __( 'That username is taken. Please choose another.', 'rw-dealer-portal-addons' ) ] );
+		}
+		add_filter( 'pre_user_login', 'rwdpa_registration_use_username' );
+	}
 	if ( $phone_req ) {
 		$phone = sanitize_text_field( wp_unslash( $_POST['rwdpa_phone'] ?? '' ) );
 		if ( strlen( preg_replace( '/\D/', '', $phone ) ) < 7 ) {
@@ -200,6 +265,19 @@ function rwdpa_registration_validate() {
 	if ( $address_req && in_array( '', rwdpa_registration_posted_address(), true ) ) {
 		wp_send_json_error( [ 'message' => __( 'Please enter your full address.', 'rw-dealer-portal-addons' ) ] );
 	}
+}
+
+/**
+ * Swap in the applicant's chosen username when core creates the user.
+ * Added only for a validated registration request; removes itself after one use.
+ *
+ * @param string $login Username core generated.
+ * @return string
+ */
+function rwdpa_registration_use_username( $login ) {
+	remove_filter( 'pre_user_login', 'rwdpa_registration_use_username' );
+	$username = rwdpa_registration_posted_username();
+	return '' !== $username ? $username : $login;
 }
 
 /**

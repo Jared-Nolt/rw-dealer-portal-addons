@@ -27,7 +27,8 @@ All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 == Changelog ==
 
 = 1.7.0 =
-* New optional address field on the Request Access form (Portal Display → Registration, off by default): street, city, state and ZIP, optionally required. Saved to the user as _rwdpa_address and shown on their profile.
+* New optional address field on the Request Access form (Portal Display → Registration, off by default): street, city, state and ZIP after the email field, optionally required. Saved to the user as _rwdpa_address and shown on their profile.
+* New optional username field (off by default): applicants choose their username (checked for format and availability) instead of the generated first.last.
 
 = 1.6.0 =
 * New optional "Dealer Finder Layout" (Addons settings, off by default): store-locator layout for the Dealer Search, Dealer Map and Dealer List widgets — search on top, scrollable dealer list beside a map that stays in view, stacked on phones — and cleaner result cards. Themeable with CSS custom properties.

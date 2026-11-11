@@ -58,6 +58,8 @@ function rwdpa_portal_defaults() {
 		'registration_phone'      => 0,
 		'registration_phone_req'  => 1,
 		'registration_phone_text' => __( 'Phone Number', 'rw-dealer-portal-addons' ),
+		'registration_username'      => 0,
+		'registration_username_text' => __( 'Username', 'rw-dealer-portal-addons' ),
 		'registration_address'      => 0,
 		'registration_address_req'  => 1,
 		'registration_address_text' => __( 'Business Address', 'rw-dealer-portal-addons' ),
@@ -173,6 +175,9 @@ function rwdpa_portal_sanitize( $raw ) {
 		$clean['registration_phone']      = ! empty( $raw['registration_phone'] ) ? 1 : 0;
 		$clean['registration_phone_req']  = ! empty( $raw['registration_phone_req'] ) ? 1 : 0;
 		$clean['registration_phone_text'] = sanitize_text_field( $raw['registration_phone_text'] ?? '' );
+
+		$clean['registration_username']      = ! empty( $raw['registration_username'] ) ? 1 : 0;
+		$clean['registration_username_text'] = sanitize_text_field( $raw['registration_username_text'] ?? '' );
 
 		$clean['registration_address']      = ! empty( $raw['registration_address'] ) ? 1 : 0;
 		$clean['registration_address_req']  = ! empty( $raw['registration_address_req'] ) ? 1 : 0;
@@ -490,9 +495,20 @@ function rwdpa_portal_render_registration_tab( $settings ) {
 			<td><input type="text" id="rwdpa_registration_phone_text" class="regular-text" name="rwdpa_portal[registration_phone_text]" value="<?php echo esc_attr( $settings['registration_phone_text'] ); ?>" /></td>
 		</tr>
 		<tr>
+			<th scope="row"><?php esc_html_e( 'Username Field', 'rw-dealer-portal-addons' ); ?></th>
+			<td>
+				<label style="display:block;"><input type="checkbox" name="rwdpa_portal[registration_username]" value="1" <?php checked( $settings['registration_username'] ); ?> /> <?php esc_html_e( 'Let applicants choose their username (required, placed after the email field)', 'rw-dealer-portal-addons' ); ?></label>
+				<p class="description"><?php esc_html_e( 'Without it, the portal makes the username from the applicant\'s name (first.last).', 'rw-dealer-portal-addons' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="rwdpa_registration_username_text"><?php esc_html_e( 'Username Label / Placeholder', 'rw-dealer-portal-addons' ); ?></label></th>
+			<td><input type="text" id="rwdpa_registration_username_text" class="regular-text" name="rwdpa_portal[registration_username_text]" value="<?php echo esc_attr( $settings['registration_username_text'] ); ?>" /></td>
+		</tr>
+		<tr>
 			<th scope="row"><?php esc_html_e( 'Address Field', 'rw-dealer-portal-addons' ); ?></th>
 			<td>
-				<label style="display:block;margin-bottom:6px;"><input type="checkbox" name="rwdpa_portal[registration_address]" value="1" <?php checked( $settings['registration_address'] ); ?> /> <?php esc_html_e( 'Add an address field (street, city, state, ZIP) to the Request Access form', 'rw-dealer-portal-addons' ); ?></label>
+				<label style="display:block;margin-bottom:6px;"><input type="checkbox" name="rwdpa_portal[registration_address]" value="1" <?php checked( $settings['registration_address'] ); ?> /> <?php esc_html_e( 'Add an address field (street, city, state, ZIP) after the email field', 'rw-dealer-portal-addons' ); ?></label>
 				<label style="display:block;"><input type="checkbox" name="rwdpa_portal[registration_address_req]" value="1" <?php checked( $settings['registration_address_req'] ); ?> /> <?php esc_html_e( 'Required', 'rw-dealer-portal-addons' ); ?></label>
 				<p class="description"><?php esc_html_e( 'Saved to the user (meta key _rwdpa_address: street, city, state, zip) and shown on their user profile.', 'rw-dealer-portal-addons' ); ?></p>
 			</td>
