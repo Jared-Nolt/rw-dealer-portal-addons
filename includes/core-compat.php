@@ -71,6 +71,7 @@ function rwdpa_core_compat_checks() {
 	$list   = __( 'Contractor list and map print button', 'rw-dealer-portal-addons' );
 	$fields = __( 'Portal Details on dealers', 'rw-dealer-portal-addons' );
 	$common = __( 'General', 'rw-dealer-portal-addons' );
+	$states = __( 'Dealer State pages', 'rw-dealer-portal-addons' );
 
 	$checks = [
 		[ $reg, __( 'Request Access shortcode/widget name', 'rw-dealer-portal-addons' ), 'source', "'rwdp_request_access'" ],
@@ -117,6 +118,10 @@ function rwdpa_core_compat_checks() {
 			[ $fields, __( 'Dealer editor nonce', 'rw-dealer-portal-addons' ), 'source', 'rwdp_dealer_meta_nonce' ],
 			[ $fields, __( 'Dealer coordinates meta', 'rw-dealer-portal-addons' ), 'source', '_rwdp_lat' ],
 			[ $common, 'rwdp_get_page_url()', 'function', 'rwdp_get_page_url' ],
+			[ $states, __( 'Dealer State taxonomy', 'rw-dealer-portal-addons' ), 'taxonomy', 'rw_dealer_state' ],
+			[ $states, 'rwdp_sync_dealer_state_taxonomy()', 'function', 'rwdp_sync_dealer_state_taxonomy' ],
+			[ $states, __( 'Dealer Type taxonomy', 'rw-dealer-portal-addons' ), 'taxonomy', 'rw_dealer_type' ],
+			[ $states, __( 'Finder Dealer Type label', 'rw-dealer-portal-addons' ), 'source', "'Dealer Type:'" ],
 		]
 	);
 }
