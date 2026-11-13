@@ -49,6 +49,7 @@ function rwdpa_get_settings() {
 		'show_print_button_on_map'     => 0,
 		'print_button_text'            => __( 'Download Contractor List', 'rw-dealer-portal-addons' ),
 		'finder_style'                 => 0,
+		'core_watch'                   => 0,
 	];
 
 	$settings = get_option( 'rwdpa_settings', [] );
@@ -86,6 +87,7 @@ function rwdpa_get_settings() {
 	$settings['show_service_area_in_popup'] = ! empty( $settings['show_service_area_in_popup'] ) ? 1 : 0;
 	$settings['show_print_button_on_map'] = ! empty( $settings['show_print_button_on_map'] ) ? 1 : 0;
 	$settings['finder_style'] = ! empty( $settings['finder_style'] ) ? 1 : 0;
+	$settings['core_watch']   = ! empty( $settings['core_watch'] ) ? 1 : 0;
 	$settings['print_button_text'] = sanitize_text_field( $settings['print_button_text'] ?? '' );
 	if ( '' === $settings['print_button_text'] ) {
 		$settings['print_button_text'] = $defaults['print_button_text'];
@@ -130,6 +132,7 @@ function rwdpa_sanitize_settings( $raw ) {
 	$clean['show_service_area_in_popup'] = ! empty( $raw['show_service_area_in_popup'] ) ? 1 : 0;
 	$clean['show_print_button_on_map'] = ! empty( $raw['show_print_button_on_map'] ) ? 1 : 0;
 	$clean['finder_style'] = ! empty( $raw['finder_style'] ) ? 1 : 0;
+	$clean['core_watch']   = ! empty( $raw['core_watch'] ) ? 1 : 0;
 	$clean['print_button_text'] = sanitize_text_field( $raw['print_button_text'] ?? '' );
 	if ( '' === $clean['print_button_text'] ) {
 		$clean['print_button_text'] = __( 'Download Contractor List', 'rw-dealer-portal-addons' );
@@ -274,6 +277,26 @@ function rwdpa_render_settings_page() {
 							<?php esc_html_e( 'Store-locator layout for the Dealer Search, Dealer Map and Dealer List widgets: search on top, a scrollable dealer list beside a map that stays in view (stacked on phones), and cleaner result cards.', 'rw-dealer-portal-addons' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( 'Put the three widgets in the same classic Elementor Container. Colors and fonts: --rwdpa-finder-accent, --rwdpa-finder-link, --rwdpa-finder-label-font, --rwdpa-finder-height (CSS custom properties on body).', 'rw-dealer-portal-addons' ); ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Core Update Watch', 'rw-dealer-portal-addons' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="rwdpa_settings[core_watch]" value="1" <?php checked( ! empty( $settings['core_watch'] ) ); ?> />
+							<?php esc_html_e( 'On the Plugins page, show a notice under this add-on when RW Dealer Portal has an update or is newer than the version this add-on was tested with, and check that everything the add-on needs from RW Dealer Portal is still there.', 'rw-dealer-portal-addons' ); ?>
+						</label>
+						<p class="description">
+							<?php
+							printf(
+								/* translators: 1: tested core version, 2: installed core version */
+								esc_html__( 'Tested with RW Dealer Portal %1$s. Installed: %2$s. Only administrators see the notice; the check re-runs automatically after RW Dealer Portal updates.', 'rw-dealer-portal-addons' ),
+								esc_html( RWDPA_TESTED_CORE ),
+								esc_html( defined( 'RWDP_VERSION' ) ? RWDP_VERSION : '—' )
+							);
+							?>
+						</p>
 					</td>
 				</tr>
 
