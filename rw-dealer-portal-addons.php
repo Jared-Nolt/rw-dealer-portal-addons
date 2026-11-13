@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RW Dealer Portal Addons
  * Description: Optional add-ons for RW Dealer Portal: contractor list print/PDF tools, service radius on the dealer map, dealer tiers, sales managers and territories, and portal display shortcodes.
- * Version: 1.8.0
+ * Version: 1.9.0
  * Author: Jared Nolt
  * Plugin URI: https://github.com/Jared-Nolt/rw-dealer-portal-addons
  * Requires at least: 6.5
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RWDPA_VERSION', '1.8.0' );
+define( 'RWDPA_VERSION', '1.9.0' );
 define( 'RWDPA_PLUGIN_FILE', __FILE__ );
 define( 'RWDPA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RWDPA_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -50,6 +50,7 @@ function rwdpa_bootstrap() {
 	require_once RWDPA_PLUGIN_DIR . 'includes/asset-import.php';
 	require_once RWDPA_PLUGIN_DIR . 'includes/dealer-finder-style.php';
 	require_once RWDPA_PLUGIN_DIR . 'includes/core-compat.php';
+	require_once RWDPA_PLUGIN_DIR . 'includes/dealer-states.php';
 
 	add_action( 'elementor/widgets/register', 'rwdpa_register_elementor_widgets' );
 }
