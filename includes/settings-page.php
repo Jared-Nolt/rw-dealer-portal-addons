@@ -50,6 +50,10 @@ function rwdpa_get_settings() {
 		'print_button_text'            => __( 'Download Contractor List', 'rw-dealer-portal-addons' ),
 		'finder_style'                 => 0,
 		'core_watch'                   => 0,
+		'dealer_state_pages'           => 0,
+		'dealer_state_base'            => 'dealer-state',
+		'dealer_state_sync_type'       => 0,
+		'dealer_state_relabel'         => 0,
 	];
 
 	$settings = get_option( 'rwdpa_settings', [] );
@@ -88,6 +92,10 @@ function rwdpa_get_settings() {
 	$settings['show_print_button_on_map'] = ! empty( $settings['show_print_button_on_map'] ) ? 1 : 0;
 	$settings['finder_style'] = ! empty( $settings['finder_style'] ) ? 1 : 0;
 	$settings['core_watch']   = ! empty( $settings['core_watch'] ) ? 1 : 0;
+	$settings['dealer_state_pages']     = ! empty( $settings['dealer_state_pages'] ) ? 1 : 0;
+	$settings['dealer_state_base']      = rwdpa_sanitize_state_base( $settings['dealer_state_base'] ?? '' );
+	$settings['dealer_state_sync_type'] = ! empty( $settings['dealer_state_sync_type'] ) ? 1 : 0;
+	$settings['dealer_state_relabel']   = ! empty( $settings['dealer_state_relabel'] ) ? 1 : 0;
 	$settings['print_button_text'] = sanitize_text_field( $settings['print_button_text'] ?? '' );
 	if ( '' === $settings['print_button_text'] ) {
 		$settings['print_button_text'] = $defaults['print_button_text'];
@@ -106,6 +114,17 @@ function rwdpa_get_settings() {
 	$settings['contractor_list_show_columns'] = array_values( array_intersect( array_keys( rwdp_get_contractor_list_column_labels() ), $settings['contractor_list_show_columns'] ) );
 
 	return $settings;
+}
+
+/**
+ * State page URL base: path segments of letters, numbers and dashes ('dealer-state' when empty).
+ *
+ * @param mixed $base Raw base.
+ * @return string
+ */
+function rwdpa_sanitize_state_base( $base ) {
+	$base = implode( '/', array_filter( array_map( 'sanitize_title', explode( '/', trim( (string) $base, '/' ) ) ) ) );
+	return '' !== $base ? $base : 'dealer-state';
 }
 
 /**
@@ -133,6 +152,10 @@ function rwdpa_sanitize_settings( $raw ) {
 	$clean['show_print_button_on_map'] = ! empty( $raw['show_print_button_on_map'] ) ? 1 : 0;
 	$clean['finder_style'] = ! empty( $raw['finder_style'] ) ? 1 : 0;
 	$clean['core_watch']   = ! empty( $raw['core_watch'] ) ? 1 : 0;
+	$clean['dealer_state_pages']     = ! empty( $raw['dealer_state_pages'] ) ? 1 : 0;
+	$clean['dealer_state_base']      = rwdpa_sanitize_state_base( $raw['dealer_state_base'] ?? '' );
+	$clean['dealer_state_sync_type'] = ! empty( $raw['dealer_state_sync_type'] ) ? 1 : 0;
+	$clean['dealer_state_relabel']   = ! empty( $raw['dealer_state_relabel'] ) ? 1 : 0;
 	$clean['print_button_text'] = sanitize_text_field( $raw['print_button_text'] ?? '' );
 	if ( '' === $clean['print_button_text'] ) {
 		$clean['print_button_text'] = __( 'Download Contractor List', 'rw-dealer-portal-addons' );
@@ -277,6 +300,32 @@ function rwdpa_render_settings_page() {
 							<?php esc_html_e( 'Store-locator layout for the Dealer Search, Dealer Map and Dealer List widgets: search on top, a scrollable dealer list beside a map that stays in view (stacked on phones), and cleaner result cards.', 'rw-dealer-portal-addons' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( 'Put the three widgets in the same classic Elementor Container. Colors and fonts: --rwdpa-finder-accent, --rwdpa-finder-link, --rwdpa-finder-label-font, --rwdpa-finder-height (CSS custom properties on body).', 'rw-dealer-portal-addons' ); ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Dealer State Pages', 'rw-dealer-portal-addons' ); ?></th>
+					<td>
+						<?php if ( ! empty( $GLOBALS['rwdpa_core_states_public'] ) ) : ?>
+							<p class="description"><strong><?php esc_html_e( 'RW Dealer Portal now provides state pages itself, so this setting has no effect. Turn it off and use the core feature.', 'rw-dealer-portal-addons' ); ?></strong></p>
+						<?php endif; ?>
+						<label style="display:block;margin-bottom:6px;">
+							<input type="checkbox" name="rwdpa_settings[dealer_state_pages]" value="1" <?php checked( ! empty( $settings['dealer_state_pages'] ) ); ?> />
+							<?php esc_html_e( 'Give each state a page listing its dealers, from the State field in each dealer\'s address', 'rw-dealer-portal-addons' ); ?>
+						</label>
+						<p style="margin:0 0 10px;">
+							<label for="rwdpa_dealer_state_base"><?php esc_html_e( 'URL base', 'rw-dealer-portal-addons' ); ?></label><br />
+							<code><?php echo esc_html( home_url( '/' ) ); ?></code><input type="text" id="rwdpa_dealer_state_base" name="rwdpa_settings[dealer_state_base]" value="<?php echo esc_attr( $settings['dealer_state_base'] ); ?>" placeholder="dealer-state" style="width:160px;" /><code>/ohio/</code>
+						</p>
+						<label style="display:block;margin-bottom:6px;">
+							<input type="checkbox" name="rwdpa_settings[dealer_state_sync_type]" value="1" <?php checked( ! empty( $settings['dealer_state_sync_type'] ) ); ?> />
+							<?php esc_html_e( 'Keep Dealer Type in sync with the state, so the finder\'s filter and "Lock to Dealer Type" work by state', 'rw-dealer-portal-addons' ); ?>
+						</label>
+						<label style="display:block;margin:0 0 6px 24px;">
+							<input type="checkbox" name="rwdpa_settings[dealer_state_relabel]" value="1" <?php checked( ! empty( $settings['dealer_state_relabel'] ) ); ?> />
+							<?php esc_html_e( 'Label the finder\'s Dealer Type dropdown "State"', 'rw-dealer-portal-addons' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Design state pages with an Elementor Theme Builder archive template (condition: Dealer States). List states with [rwdpa_dealer_states]. To limit a finder to one state, set the Dealer Search widget\'s "Lock to Dealer Type" to the state slug, e.g. ohio. Turning the Dealer Type sync off removes the state types it added; real types stay. Interim feature: remove it when RW Dealer Portal adds state pages.', 'rw-dealer-portal-addons' ); ?></p>
 					</td>
 				</tr>
 
