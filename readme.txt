@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,9 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.9.1 =
+* Dealer State pages: "Dealer States" now appears under Archives in Elementor Theme Builder display conditions (all states or a single state). Elementor only lists a taxonomy under its post type's archive, which RW Dealer Portal dealers don't have.
 
 = 1.9.0 =
 * New optional Dealer State pages (Addons settings, off by default): makes RW Dealer Portal's state category public with pages like /dealer-state/ohio/ (editable base; code URLs redirect), listed under Dealer Portal → Dealer States with editable descriptions, usable in Elementor archive templates and loops. Optional Dealer Type sync so the finder's dropdown and "Lock to Dealer Type" work by state (turning it off removes only the state types it added), optional "State" label for that dropdown, and [rwdpa_dealer_states] for a state list with counts. Interim: steps aside if RW Dealer Portal makes state pages public itself.

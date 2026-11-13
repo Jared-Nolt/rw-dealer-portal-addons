@@ -35,6 +35,7 @@ add_action( 'add_option_rwdpa_settings', 'rwdpa_dealer_states_settings_added', 1
 add_action( 'admin_menu', 'rwdpa_dealer_states_admin_menu', 30 );
 add_filter( 'gettext', 'rwdpa_dealer_states_relabel', 10, 3 );
 add_shortcode( 'rwdpa_dealer_states', 'rwdpa_dealer_states_shortcode' );
+add_action( 'elementor/theme/register_conditions', 'rwdpa_dealer_states_elementor_condition' );
 
 /**
  * One setting from rwdpa_settings (read directly: this runs before init).
@@ -208,6 +209,25 @@ function rwdpa_dealer_states_redirect_code_url() {
 		wp_safe_redirect( $link, 301 );
 		exit;
 	}
+}
+
+/**
+ * Offer "Dealer States" under Archives in Elementor Theme Builder conditions.
+ * Elementor only lists a taxonomy under its post type's archive, and core
+ * registers rw_dealer without one, so the state archive is added directly.
+ *
+ * @param \ElementorPro\Modules\ThemeBuilder\Classes\Conditions_Manager $manager Conditions manager.
+ */
+function rwdpa_dealer_states_elementor_condition( $manager ) {
+	if ( ! rwdpa_dealer_states_pages_active() || ! class_exists( '\ElementorPro\Modules\ThemeBuilder\Conditions\Taxonomy' ) || ! is_object( $manager ) || ! method_exists( $manager, 'get_condition' ) ) {
+		return;
+	}
+	$archive  = $manager->get_condition( 'archive' );
+	$taxonomy = get_taxonomy( 'rw_dealer_state' );
+	if ( ! $archive || ! $taxonomy || $manager->get_condition( 'rw_dealer_state' ) ) {
+		return;
+	}
+	$archive->register_sub_condition( new \ElementorPro\Modules\ThemeBuilder\Conditions\Taxonomy( [ 'object' => $taxonomy ] ) );
 }
 
 /**
