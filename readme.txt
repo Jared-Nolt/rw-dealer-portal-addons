@@ -4,7 +4,7 @@ Tags: dealer, map, elementor, directory, addons
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,9 @@ RW Dealer Portal Addons extends RW Dealer Portal with:
 All 1.1.0 features are off until enabled on Dealer Portal → Portal Display.
 
 == Changelog ==
+
+= 1.8.0 =
+* New optional "Core Update Watch" (Addons settings, off by default): a notice under this add-on on the Plugins page when RW Dealer Portal has an update or is newer than the tested version (2.3.0), plus a self-check that the core functions, hooks, markup and CSS classes the add-on relies on are still there. The check re-runs automatically after core updates; core's own update message also gets a "tested with" line.
 
 = 1.7.0 =
 * New optional address field on the Request Access form (Portal Display → Registration, off by default): street, city, state and ZIP after the email field, optionally required. Saved to the user as _rwdpa_address and shown on their profile.
